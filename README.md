@@ -1,2 +1,2 @@
 # Data_Analysis_HW
-Data Analysis course homework
+Homework of *Data Analysis course* at Sharif University of Technology
