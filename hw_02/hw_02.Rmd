@@ -1,7 +1,7 @@
 ---
 title: "second week: Introduction to R and Rstudio"
 subtitle: "Mobile Data"
-author: "student name"
+author: "Mina Moosavifar - 93106788"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
@@ -31,12 +31,60 @@ ggplot2
 نمودار ستونی ۲۰ شرکت برتر بر حسب تعداد گوشی تولید کرده را رسم کنید.
 </p>
 
+```{r, message=FALSE, comment=NA}
+library(readr)
+library(dplyr)
+library(ggplot2)
+mobile = read_csv("data/mobile_data.csv")
+most_devices = mobile %>% group_by(company) %>% summarise(count = n())
+
+top_vendor = head(most_devices[order(most_devices$count, decreasing=TRUE), ], 20)
+
+p = ggplot(data = top_vendor, aes(y = count, x = company, fill = count)) + geom_bar(stat="identity") + theme(axis.text.x=element_text(angle=45,hjust=0.1,vjust=0.1)) + scale_fill_gradient(low="red", high="green")
+p
+cat("most cellphone vendor: ", (most_devices$company[which.max(most_devices$count)]))
+```
+
+
 ***
 
 <p dir="RTL">
 ۲. نمودار زمانی طول عرض  ضخامت و کیفیت دوربین گوشی ها را بکشید
  و به نمودار هر یک مدل خطی اضافه کنید.
 </p>
+```{r, message=FALSE, warning=FALSE}
+device_length = mobile %>% group_by(year) %>% summarise(average= mean(dim_length, na.rm = TRUE))
+
+p_length = ggplot(data = device_length, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average length based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_length
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+device_breath = mobile %>% group_by(year) %>% summarise(average= mean(dim_breadth, na.rm = TRUE))
+
+p_breath = ggplot(data = device_breath, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average breath based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_breath
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+device_thickness = mobile %>% group_by(year) %>% summarise(average= mean(dim_thickness, na.rm = TRUE))
+
+p_thickness = ggplot(data = device_thickness, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average thickness based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_thickness
+
+```
+
+```{r, message=FALSE, warning=FALSE}
+device_cam_px = mobile %>% group_by(year) %>% summarise(average= mean(cam_px, na.rm = TRUE))
+
+p_cam_px = ggplot(data = device_cam_px, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average camera pixel based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_cam_px
+
+
+```
+
 
 ***
 
@@ -46,11 +94,34 @@ LTE
 را رسم نمایید.
 </p>
 
+```{r, message=FALSE, warning=FALSE}
+sim_num_price = mobile %>% group_by(sim_no) %>% summarise(average= mean(price, na.rm = TRUE))
+
+p = ggplot(data = sim_num_price, aes(y = average, x = sim_no, fill = average)) + geom_bar(stat="identity") + ggtitle('average price based on number of simcards') + xlab('number of simcards') + ylab('average price') + guides(fill=guide_legend(title="price"))
+p
+```
+
+```{r, message=FALSE, warning=FALSE}
+lte_price = mobile %>% group_by(LTE) %>% summarise(average= mean(price, na.rm = TRUE))
+
+p_lte = ggplot(data = lte_price, aes(y = average, x = LTE, fill = average)) + geom_bar(stat="identity") + ggtitle('average price based on LTE support') + xlab('LTE support') + ylab('average price') + guides(fill=guide_legend(title="price"))
+p_lte
+```
+
 ***
 
 <p dir="RTL">
 ۴. نمودار جعبه ایی ضحامت گوشی هایی که در سال ۲۰۱۷ معرفی شده اند را برحسب اینکه کمیت جک هدفون رسم نمایید
 </p>
+
+```{r, message=FALSE, warning=FALSE}
+library(stringr)
+last_year_announce = mobile[which(str_detect(mobile$announced, "2017") == TRUE), ]
+
+p = ggplot(data = subset(last_year_announce, !is.na(audio_jack)), aes(y = dim_thickness, x = audio_jack)) + geom_boxplot() + xlab("audio jack") + ylab(" thickness") + ggtitle("Cellphone thickness based on having audio jack")
+p
+
+```
 
 ***
 
@@ -63,6 +134,25 @@ ppi
 ppi
 را دارد؟
 </p>
+
+```{r, message=FALSE, warning=FALSE}
+mobile$ppi <- with(mobile, round(sqrt((mobile$px_row^2)+(mobile$px_col^2))/(mobile$display_size)))
+mobile_nafree <- subset(mobile, !is.na(ppi))
+p = ggplot(data = mobile_nafree, mapping = aes(x = ppi, fill=..count..)) + geom_histogram(binwidth = 12) + scale_fill_gradient(low="blue", high="red") + ggtitle("number of cellphones based on pixels per inch(ppi)")
+p
+```
+
+```{r, message=FALSE, warning=FALSE}
+device_ppi = mobile_nafree %>% group_by(year) %>% summarise(average= mean(ppi, na.rm = TRUE))
+p_ppi = ggplot(data = device_ppi, mapping = aes(y = average, x = year, fill = average)) + geom_bar(stat="identity") + scale_fill_gradient(low="red", high="blue") + ggtitle("cellphone ppi per year") + ylab("average ppi") + guides(fill=guide_legend(title="average ppi")) 
+p_ppi
+```
+
+```{r, message=FALSE, comment=NA}
+cat("highest ppi cellphone name: ", (mobile_nafree$device[which.max(mobile_nafree$ppi)]), 'ppi:', (mobile_nafree$ppi[which.max(mobile_nafree$ppi)]))
+
+```
+
 
 ***
 
@@ -80,6 +170,15 @@ ppi
 اگر جواب بله هست تمام گوشی های که این خاصیت را دارند بیابید.
 با کشیدن یک نمودار به این سوال پاسخ دهید.
 </p>
+```{r, message=FALSE, warning=FALSE}
+mobile$desit <- with(mobile, (mobile$weight)/(mobile$dim_length*mobile$dim_breadth*mobile$dim_thickness))
+mobile_nafree <- subset(mobile, !is.na(desit))
+
+mobile_nafree$float <- ifelse(mobile_nafree$desit < 0.0010, TRUE, FALSE)
+
+p_float = ggplot(data = mobile_nafree, mapping = aes(x = float, fill=..count..)) + geom_histogram(stat="count") + ggtitle('floating devices on water') + ylab("number of devices") + xlab("floating")
+p_float
+```
 
 ***
 
