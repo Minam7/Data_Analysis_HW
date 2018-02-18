@@ -33,3 +33,9 @@ mobile_price <- mobile %>% group_by(year) %>% summarise(price_average = mean(pri
 p2 = ggplot(data = mobile_price, mapping = aes(x = year, y = price_average, fill = price_average)) + ggtitle("changes of prices in years") + geom_bar(stat="identity") + scale_fill_gradient(low="midnightblue", high="darkred") + ylab("average price") + guides(fill=guide_legend(title="average price")) 
 p2
 
+# top 10 average price for each phone based on company
+mobile_comp <- mobile %>% group_by(company) %>% summarise(ben = mean(price))
+mobile_comp <- head(mobile_comp[order(mobile_comp$ben, decreasing = TRUE), ], 10)
+p3 = ggplot(data = mobile_comp, mapping = aes(x = company, y = ben, fill = ben)) + ggtitle("average price per company") + geom_bar(stat="identity") + ylab("price") + guides(fill=guide_legend(title="average price")) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p3
+
