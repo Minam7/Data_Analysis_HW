@@ -30,7 +30,9 @@ ggplot2
 ۱. کدام شرکت بیشترین تعداد گوشی را تولید کرده است؟
 نمودار ستونی ۲۰ شرکت برتر بر حسب تعداد گوشی تولید کرده را رسم کنید.
 </p>
-
+<p dir="RTL">
+برای این منظور ابتدا بر اساس شرکت گروهبندی کرده و بعد تعداد را میشماریم. در نهایت ۲۰ شرکت اول در مرتبسازی نزولی جواب مورد نظر است.
+</p>
 ```{r, message=FALSE, comment=NA}
 library(readr)
 library(dplyr)
@@ -40,7 +42,7 @@ most_devices = mobile %>% group_by(company) %>% summarise(count = n())
 
 top_vendor = head(most_devices[order(most_devices$count, decreasing=TRUE), ], 20)
 
-p = ggplot(data = top_vendor, aes(y = count, x = company, fill = count)) + geom_bar(stat="identity") + theme(axis.text.x=element_text(angle=45,hjust=0.1,vjust=0.1)) + scale_fill_gradient(low="red", high="green")
+p = ggplot(data = top_vendor, aes(y = count, x = company, fill = count)) + geom_bar(stat="identity") + scale_fill_gradient(low="red", high="green") + coord_flip() + ggtitle("top 20 vendors") + xlab("number of manufactured devices")
 p
 cat("most cellphone vendor: ", (most_devices$company[which.max(most_devices$count)]))
 ```
@@ -52,36 +54,43 @@ cat("most cellphone vendor: ", (most_devices$company[which.max(most_devices$coun
 ۲. نمودار زمانی طول عرض  ضخامت و کیفیت دوربین گوشی ها را بکشید
  و به نمودار هر یک مدل خطی اضافه کنید.
 </p>
+<p dir="RTL">
+با نمودار
+scatter
+این دادهها را نمایش میدهیم و سپس به کمک
+geom_smooth
+در دو حالت خطی و منحنی مدل را رسم میکنیم.
+</p>
 ```{r, message=FALSE, warning=FALSE}
-device_length = mobile %>% group_by(year) %>% summarise(average= mean(dim_length, na.rm = TRUE))
+# device_length = mobile %>% group_by(year) %>% summarise(average= mean(dim_length, na.rm = TRUE))
 
-p_length = ggplot(data = device_length, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average length based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_length = ggplot(data = mobile, mapping = aes(y = dim_length, x = year)) + geom_point(stat = "identity") + ggtitle('device length based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE) + ylab("length")
 p_length
 
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-device_breath = mobile %>% group_by(year) %>% summarise(average= mean(dim_breadth, na.rm = TRUE))
+# device_breath = mobile %>% group_by(year) %>% summarise(average= mean(dim_breadth, na.rm = TRUE))
 
-p_breath = ggplot(data = device_breath, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average breath based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_breath = ggplot(data = mobile, mapping = aes(y = dim_breadth, x = year)) + geom_point(stat = "identity") + ggtitle('device breath based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE) + ylab("breath")
 p_breath
+
 
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-device_thickness = mobile %>% group_by(year) %>% summarise(average= mean(dim_thickness, na.rm = TRUE))
+# device_thickness = mobile %>% group_by(year) %>% summarise(average= mean(dim_thickness, na.rm = TRUE))
 
-p_thickness = ggplot(data = device_thickness, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average thickness based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_thickness = ggplot(data = mobile, mapping = aes(y = dim_thickness, x = year)) + geom_point(stat = "identity") + ggtitle('thickness based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE) + ylab("thickness")
 p_thickness
 
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-device_cam_px = mobile %>% group_by(year) %>% summarise(average= mean(cam_px, na.rm = TRUE))
+# device_cam_px = mobile %>% group_by(year) %>% summarise(average= mean(cam_px, na.rm = TRUE))
 
-p_cam_px = ggplot(data = device_cam_px, mapping = aes(y = average, x = year)) + geom_point(stat = "identity") + ggtitle('average camera pixel based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE)
+p_cam_px = ggplot(data = mobile, mapping = aes(y = cam_px, x = year)) + geom_point(stat = "identity") + ggtitle('camera pixel based on production year') + geom_smooth(method = "lm", se = FALSE, colour="red") + geom_smooth(se = FALSE) + ylab("camera pixel")
 p_cam_px
-
 
 ```
 
@@ -92,6 +101,11 @@ p_cam_px
 ۳. نمودار ستونی متوسط قیمت گوشی بر حسب تعداد سیم کارت و دسترسی به 
 LTE
 را رسم نمایید.
+</p>
+<p dir="RTL">
+در این نمودار ابتدا بر اساس تعداد سیم کارت و
+LTE
+گروهبندی میکنیم و در نهایت میانگین قیمت را برای هر گروه بدست میآوریم و نمودار مربوطه را رسم میکنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE}
@@ -113,7 +127,20 @@ p_lte
 <p dir="RTL">
 ۴. نمودار جعبه ایی ضحامت گوشی هایی که در سال ۲۰۱۷ معرفی شده اند را برحسب اینکه کمیت جک هدفون رسم نمایید
 </p>
-
+<p dir="RTL">
+برای بدست آوردن دستگاههایی که در سال ۲۰۱۷ معرفی شدهاند، میبایست وجود رشتهی 
+"2017"
+را در رشتهی 
+announced
+بدست آوریم، که برای این منظور از تابع
+str_detect
+از کتابخانهی
+stringr
+استفاده میکنیم.
+در نهایت نیز برای رسم نمودار جعبهای از دستور
+geom_boxplot
+بهره میبریم.
+</p>
 ```{r, message=FALSE, warning=FALSE}
 library(stringr)
 last_year_announce = mobile[which(str_detect(mobile$announced, "2017") == TRUE), ]
@@ -133,6 +160,16 @@ ppi
 کدام گوشی بیشترین
 ppi
 را دارد؟
+</p>
+<p dir="RTL">
+برای بدست آوردن مقدار
+ppi
+از نسبت قطر صفحه بر اساس تعداد پیکسل به قطر صفحه بر اساس
+inch
+استفاده میکنیم.
+در نهایت نیز برای میانگین 
+ppi
+بر اساس سال گروهبندی کرده و میانگین را برای هر گروه بدست میآوریم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE}
@@ -162,6 +199,22 @@ cat("highest ppi cellphone name: ", (mobile_nafree$device[which.max(mobile_nafre
 گفته می شد. سعی کنید برای این مفهوم کمیتی مناسب تعریف کنید .
  ده گوشکوب برتر را پیدا کرده و نمودار گوشکوبیت آن را رسم نمایید.
 </p>
+<p dir="RTL">
+برای محاسبهی گوشکوب بودن گوشیها، ابتدا دستگاههایی که دارای قطر بیشتر از ۲۰ میلیمتر هستند و اندازهی صفحهی نمایش آنها کمتر از ۳ اینچ است و چگالی آنها بیشتر از ۰.۰۰۸ گرم بر میلیمتر مکعب است را انتخاب میکنیم.
+<br>
+سپس معیار گوشکوب بودن را نسبت حاصلضرب قطر در چگالی به اندازهی صفحه در نظر میگیریم. در صورت دستگاهها به صورت زیر میشوند.
+</p>
+```{r, message=FALSE, warning=FALSE}
+mobile$desit <- with(mobile, (mobile$weight)/(mobile$dim_length*mobile$dim_breadth*mobile$dim_thickness))
+mobile_nafree <- subset(mobile, !is.na(desit))
+
+mobile_goosh = mobile_nafree %>% filter(dim_thickness > 20) %>% filter(display_size < 3) %>% filter(desit > 0.0008)
+mobile_goosh = mobile_goosh %>% mutate(gooshkubi = (dim_thickness*desit)/display_size)
+gooshkub_top10 = head(mobile_goosh[order(mobile_goosh$gooshkubi, decreasing = TRUE), ], 10)
+
+p = ggplot(data = gooshkub_top10, aes(y = gooshkubi, x = device, fill = gooshkubi)) + geom_bar(stat="identity") + scale_fill_gradient(low="steelblue", high="midnightblue") + ggtitle("top 20 gooshkubs") + xlab("devices") + ylab("gooshkubi") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p
+```
 
 ***
 
@@ -170,13 +223,22 @@ cat("highest ppi cellphone name: ", (mobile_nafree$device[which.max(mobile_nafre
 اگر جواب بله هست تمام گوشی های که این خاصیت را دارند بیابید.
 با کشیدن یک نمودار به این سوال پاسخ دهید.
 </p>
+<p dir="RTL">
+برای تشخیص غرقشدن در آب چگالی هر گوشی را بدست میآوریم که از نسبت جرم به حجم بدست میآید. همچنین برای بدستآوردن حجم گوشی، حاصلضرب طول و عرض و ارتفاع را بدست میآوریم.
+<br>
+حال گوشیهایی که دارای چگالی کمتر از چگالی آب بر حسب گرم بر میلیمتر مکعب هستند، بر روی آب شناور میمانند.
+(چگالی آب = ۰.۰۰۱ گرم بر میلیمتر معکب)
+<br>
+مشاهده میکنیم که حدود ۱۰۱۴ دستگاه بر روی ب شناور میمانند.
+</p>
 ```{r, message=FALSE, warning=FALSE}
 mobile$desit <- with(mobile, (mobile$weight)/(mobile$dim_length*mobile$dim_breadth*mobile$dim_thickness))
 mobile_nafree <- subset(mobile, !is.na(desit))
 
-mobile_nafree$float <- ifelse(mobile_nafree$desit < 0.0010, TRUE, FALSE)
+mobile_nafree$float <- ifelse(mobile_nafree$desit < 0.001, TRUE, FALSE)
+View(mobile_nafree[which(mobile_nafree$float == TRUE), ])
 
-p_float = ggplot(data = mobile_nafree, mapping = aes(x = float, fill=..count..)) + geom_histogram(stat="count") + ggtitle('floating devices on water') + ylab("number of devices") + xlab("floating")
+p_float = ggplot(data = mobile_nafree, mapping = aes(x = desit, fill = float)) + geom_histogram(position="identity", binwidth = 0.00003) + xlab("density") + ylab("count") + ggtitle("floating devices vs sinking devices in water") 
 p_float
 ```
 
@@ -186,12 +248,48 @@ p_float
 ۸. نمودار پراکنش حجم ذخیره سازی باطری و وزن را رسم نمایید.
 میزان همبستگی بین این دو کمیت را محاسبه کنید.
 </p>
+<p dir="RTL">
+برای نمایش نمودار از
+scatter plot
+استفاده میکنیم.
+</p>
+```{r, message=FALSE, warning=FALSE}
+battery_weigth = ggplot(data = mobile, mapping = aes(x = battery_mah, y = weight, color = weight)) + geom_point(stat = "identity") + xlab("battery capacity") + ylab("weight") + scale_color_gradient(low="brown1", high="brown4")
+battery_weigth
+```
+<p dir="RTL">
+همچنین برای دست آوردن میزان همبستگی این دو متغیر از تابع
+cor
+استفاده میکنیم.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+bat_nafree = subset(mobile, !is.na(battery_mah))
+mobile_nafree = subset(bat_nafree, !is.na(weight))
+
+cat("correlation between battery capacity and weight: ", cor(mobile_nafree$battery_mah, mobile_nafree$weight))
+```
+
 
 ***
 
 <p dir="RTL">
 ۹. قیمت پرچمداران یک برند خاص مثلا سامسونگ را بیابید و نمودار قیمت زمان و نام مدل را رسم نمایید.
 </p>
+<p dir="RTL">
+برای بدست آوردن پرچمداران برند 
+HTC
+ابتدا بر اساس سال گروهبندی کرده و سپس بیشترین قیمت هر سال را بدست میآوریم.
+</p>
+```{r, message=FALSE, warning=FALSE}
+htc_dev = mobile %>% filter(company=="HTC")
+htc_dev = subset(htc_dev, !is.na(price))
+
+htc_dev = htc_dev %>% group_by(year) %>% filter(price == max(price)) %>% distinct(year, .keep_all = TRUE)
+View(htc_dev)
+
+flagship = ggplot(data = htc_dev, mapping = aes(x = year, y = price)) + geom_point(stat="identity") + ggtitle("HTC flagships") + geom_text(mapping = aes(label = device), angle = -45, hjust = 1.1, size = 2.5)
+flagship
+```
 
 ***
 
