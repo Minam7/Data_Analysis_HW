@@ -296,4 +296,45 @@ flagship
 <p dir="RTL">
 ۱۰. سه نمودار جالب رسم کنید و توضیح دهید چرا از نظر شما جالب است؟
 </p>
+<p dir="RTL">
+**نمودار همبستگی ویژگیهای مختلف بر روی قیمت گوشیها**
+<br>
+برای این منظور ابتدا مقادیر وارد نشده را از ویژگیهای عددی، ظرفیت باتری، کیفیت دوربین، چگالی، ضخامت، اندازهی صفحه، تعداد پیکسل در هر اینچ، اندازهی رم و وزن حذف میکنیم.
+سپس به ازای ویژگیهای گفته شده در بالا مقدار همبستگی را بدست میآوریم.
+<br>
+علت جالب بودن این نمودار این است که تاثیر ویژگیهای مختلف بر روی قیمت گوشیهای مختلف را نشان میدهد و همانند انتظار اندازهی رم بیشترین تاثیر را بر روی قیمت میگذارد. اما در کل ترکیب کلی این ویژگیها با قیمت رابطه دارد و همانطور که مشاهده میشود، میزان همبستگی هر ویژگی به تنهایی مقدار بالایی ندارد.
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+# corelation of fields to price
+mobile <- subset(mobile, !is.na(price))
+mobile <- subset(mobile, !is.na(battery_mah))
+mobile <- subset(mobile, !is.na(weight))
+mobile <- subset(mobile, !is.na(dim_thickness))
+mobile <- subset(mobile, !is.na(display_size))
+mobile <- subset(mobile, !is.na(cam_px))
+mobile <- subset(mobile, !is.na(ram))
+
+mobile$ppi <- with(mobile, round(sqrt((mobile$px_row^2)+(mobile$px_col^2))/(mobile$display_size)))
+mobile <- subset(mobile, !is.na(ppi))
+
+mobile$desit <- with(mobile, (mobile$weight)/(mobile$dim_length*mobile$dim_breadth*mobile$dim_thickness))
+mobile <- subset(mobile, !is.na(desit))
+
+features <- c('battery_mah','weight','dim_thickness', 'display_size', 'cam_px', 'ram', 'ppi', 'density')
+corelation <- c(cor(mobile$price, mobile$battery_mah), cor(mobile$price, mobile$weight), cor(mobile$price, mobile$dim_thickness), cor(mobile$price, mobile$display_size), cor(mobile$price, mobile$cam_px), cor(mobile$price, mobile$ram), cor(mobile$price, mobile$ppi), cor(mobile$price, mobile$desit))
+my <- data.frame(features, corelation)
+
+p1 = ggplot(data = my, mapping = aes(x = features, y = corelation, fill = corelation)) + ggtitle("corelation of different features with price") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p1
+```
+
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+
+
+```
 
