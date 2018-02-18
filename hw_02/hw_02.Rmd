@@ -307,6 +307,8 @@ flagship
 
 ```{r, message=FALSE, warning=FALSE}
 # corelation of fields to price
+mobile <- mobile[which(mobile$company != "QMobile"),]
+mobile <- mobile[which(mobile$price < 3000),]
 mobile <- subset(mobile, !is.na(price))
 mobile <- subset(mobile, !is.na(battery_mah))
 mobile <- subset(mobile, !is.na(weight))
@@ -330,11 +332,18 @@ p1
 ```
 
 <p dir="RTL">
-
+**نمودار تغییرات قیمت در طول سال**
+در این نمودار تغییرات میانگین قیمت گوشیهای مختلف در طول سالها را مشاهده میکنیم. 
+<br>
+علت جالب بودن این نمودار نیز این است که با اضافهتر شدن ویژگیهای متخلف شرکتهای روند افزایش قیمت گوشیها را در پیش گرفتهاند و از دو سال پیش نیز این افزایش قیمتهای بسیار بیشتر شده است.
 </p>
 
 ```{r, message=FALSE, warning=FALSE}
-
+# average price in years
+mobile_price <- mobile %>% group_by(year) %>% summarise(price_average = mean(price , na.rm = TRUE))
+p2 = ggplot(data = mobile_price, mapping = aes(x = year, y = price_average, fill = price_average)) + ggtitle("changes of prices in years") + geom_bar(stat="identity") + scale_fill_gradient(low="midnightblue", high="darkred") + ylab("average price") + guides(fill=guide_legend(title="average price")) 
+p2
 
 ```
+
 
