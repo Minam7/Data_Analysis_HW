@@ -122,6 +122,23 @@ p_lte = ggplot(data = lte_price, aes(y = average, x = LTE, fill = average)) + ge
 p_lte
 ```
 
+<p dir="RTL">
+برای نمایش نمودار هر دو متغیر 
+LTE
+و تعداد سیمکارت، یک متغیری که حاصل ترکیب این دو مقادیر است را با تابع
+interaction
+بدست میآوریم و سپس بر اساس این مقدار گروهبندی کرده و میانگین قیمت هر گروه از گوشیها را بدست میآوریم.
+</p>
+```{r, message=FALSE, warning=FALSE}
+mobile = mobile %>% mutate(sim_lte = interaction(sim_no, LTE))
+View(mobile)
+
+mobile_lte_price = mobile %>% group_by(sim_lte) %>% summarise(average= mean(price, na.rm = TRUE))
+
+p_lte_price = ggplot(data = mobile_lte_price, aes(y = average, x = sim_lte, fill = average)) + geom_bar(stat="identity") + ggtitle('average price based on number of simcards and having LTE') + xlab('having LTE and number of simcards') + ylab('average price') + guides(fill=guide_legend(title="price"))
+p_lte_price
+```
+
 ***
 
 <p dir="RTL">
