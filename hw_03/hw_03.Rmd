@@ -1,7 +1,7 @@
 ---
 title: "Third Week: Exploratory Data Analysis"
 subtitle: "LaLiga Analysis"
-author: "student name"
+author: "Mina Moosavifar - 93106788"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
@@ -27,10 +27,64 @@ highcharter
 </p>
 
 ***
+<p dir="RTL">
+
+از آنجایی که برای حل سوالات نیاز به جدول لیگ در تمام سالها داریم، ابتدا بر اساس کد زیر جدول زیر را بدست میآوریم.
+در این کد، برای هر فصل تعداد برد، مساوی و باخت هر تیم را بدست میآوریم و در نهایت امتیاز تیمها را محاسبه میکنیم.
+</p>
+
+```{r, message=FALSE}
+library(devtools)
+library(dplyr)
+library(highcharter)
+library(engsoccerdata)
+library(ggplot2)
+
+fdb = as.tbl(spain)
+View(fdb)
+
+# creating all league table
+laLiga <- fdb %>% filter(tier == 1)
+#rbind two copies of the orignal df, simply reversing home/away team for each match
+rbind(
+  laLiga %>%
+    select(Season, team = home, opp = visitor, GF = hgoal, GA = vgoal),
+  laLiga %>%
+    select(Season, team = visitor, opp = home, GF = vgoal, GA = hgoal)
+) %>% mutate(GD = GF-GA) %>% 
+  group_by(team,Season) %>% 
+  summarize(GP = n(),
+            goalsF = sum(GF),
+            goalsA = sum(GA),
+            goaldif = sum(GD),
+            W = sum(GD>0),
+            D = sum(GD==0),
+            L = sum(GD<0)
+  ) %>% 
+  mutate(score = W*3 + D) %>%
+  arrange(Season,desc(score)) %>% 
+  group_by(Season) %>% 
+  mutate(rank = rank(-score) %>% as.integer()) -> atable
+```
+
+***
 
 <p dir="RTL">
 ۱. تعداد قهرمانی های تیم ها در تاریخ لالیگا  را استخراج کرده و نمودار ستونی آنها را رسم کنید.
 </p>
+<p dir="RTL">
+برای این نمودار ابتدا از جدول لیگ به ازای هر فصل، تیم دارای بیشترین امتیاز را انتخاب میکنیم، سپس بر اساس تیم گروهبندی کرده و تعداد رخداد هر تیم را محاسبه میکنیم.
+</p>
+```{r, message=FALSE, warning=FALSE}
+champion_table <- atable %>% 
+  group_by(Season) %>% slice(which.max(score))
+champs <- champion_table %>% 
+  group_by(team) %>% summarise(cup = n())
+
+p1 = ggplot(data = champs, mapping = aes(x = team, y = cup, fill = cup)) + ggtitle("number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p1
+```
+
 
 ***
 
@@ -38,6 +92,46 @@ highcharter
 ۲. کسل کننده ترین لیگ و تیم را بیابید.
 نمودار ده تیم و ده فصل کسل کننده را رسم کنید.
 </p>
+<p dir="RTL">
+**کسلکنندهترین تیمها**
+برای نمایش کسلکنندهترین تیمها معیاری را برای کسلکنندگی معرفی میکنیم که آن نسبت گلهای بازیهای تیمها به تعداد بازی تیمها است. سپس بر اساس تیم گروهبندی می کنیم و میانگین نسبت کسلکنندهگی تیمها را بدست آورده و ده تیم دارای کمترین مقدار را به عنوان کسلکنندهترین تیمها انتخاب میکنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+# average goal per game
+atable <- atable %>% mutate(goaltotgame = (goalsA + goalsF)/GP)
+boring_teams <- atable %>% 
+  group_by(team) %>% summarise(goaltotavg = mean(goaltotgame)) %>% 
+  arrange(goaltotavg) %>% slice(1:10)
+
+highchart() %>% 
+  hc_add_series(data = boring_teams, type = "line", hcaes(x = team, y = goaltotavg), name = "Boring teams", showInLegend = FALSE) %>% 
+  hc_yAxis(title = list(text = "boring rate")) %>% 
+  hc_xAxis(type = 'category', title = list(categories = boring_teams$team, text = "team")) %>% 
+  hc_title(text = "Most boring teams", style = list(fontWeight = "bold")) %>%
+  hc_add_theme(hc_theme_flat())
+```
+<p dir="RTL">
+**کسلکنندهترین فصلها**
+برای نمایش کسلکنندهترین فصلها، ابتدا معیاری برای کسلکنندگی تعریف میکنیم که برابر است با متوسط گل زدهشده در هر بازی. برای این منظور ابتدا تعداد گل بازیها را بدستآورده و سپس برای هر فصل متوسط تعداد گلزدهشده را مییابیم و در نهایت فصل هایی که دارای کمترین متوسط گل هستند را به عنوان کسلکنندهترین فصلها انتخاب میکنیم.
+</p>
+```{r, message=FALSE, warning=FALSE}
+# average goal per game
+laLiga <- laLiga %>% mutate(totgoal = hgoal + vgoal)
+boring_seasons <- laLiga %>% 
+  group_by(Season) %>% 
+  summarise(avggoal = mean(totgoal)) %>% 
+  arrange(avggoal) %>% 
+  slice(1:10)
+  
+highchart() %>% 
+  hc_add_series(data = boring_seasons, type = "line", hcaes(x = reorder(Season, avggoal), y = avggoal), name = "Boring seasons", showInLegend = FALSE, color = "lightseagreen") %>% 
+  hc_yAxis(title = list(text = "boring rate")) %>% 
+  hc_xAxis(type = 'category', title = list(categories = boring_seasons$Season, text = "season")) %>% 
+  hc_title(text = "Most boring teams", style = list(fontWeight = "bold")) %>%
+  hc_add_theme(hc_theme_flat())
+```
+
 
 ***
 
