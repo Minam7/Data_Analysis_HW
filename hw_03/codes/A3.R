@@ -14,27 +14,25 @@ res_table <- rbind(
 
 all_table <- res_table %>% group_by(Season, team) %>% 
   mutate(score = ifelse(GD > 0, 3, ifelse(GD < 0, 0, 1)),
-         game_nu = dense_rank(Date)) %>% 
+         game_nu = dense_rank(Date),
+         time = Date) %>% 
   arrange(Season, team, game_nu) %>% 
   mutate(score_cum = cumsum(score),
          GF_cum = cumsum(GF),
          GA_cum = cumsum(GA),
          GD_cum = cumsum(GD)
          ) %>% 
-  select(Season, team, game_nu, score_cum, GF_cum, GA_cum, GD_cum)
+  select(Season, team, game_nu, time, score_cum, GF_cum, GA_cum, GD_cum)
+
+all_table <- all_table %>% ungroup() %>% group_by(Season, game_nu) %>% 
+  mutate(time = min(time)) %>% ungroup() %>% group_by(Season, team)
 
 # full season results
 full_season <- all_table %>% 
   filter(game_nu == max(game_nu)) %>% 
-  arrange(Season,desc(score_cum)) %>% 
-  group_by(Season) %>% 
-  mutate(rank = rank(-score_cum) %>% as.integer()) 
-
-# normalize based on laliga scoring system
-full_season[1243, 8] = 2
-full_season[476, 8] = 2
-full_season[62, 8] = 2
-full_season[152, 8] = 2
+  arrange(Season, desc(score_cum), desc(GD_cum)) %>% 
+  group_by(Season) %>%
+  mutate(rank = row_number() %>% as.integer()) 
 
 # champions in full season
 full_champions <- full_season %>% filter(rank == 1)
@@ -45,11 +43,9 @@ half_season <- all_table %>%
   filter(game_nu == floor(max(game_nu)/2)) %>% 
   arrange(Season,desc(score_cum), desc(GD_cum)) %>% 
   group_by(Season) %>% 
-  mutate(rank = rank(-score_cum) %>% as.integer()) 
+  mutate(rank = row_number() %>% as.integer()) 
 
-full_season[348, 8] = 2
-
-half_champions <- half_season %>% filter(rank == 1) %>% filter(GD_cum == max(GD_cum))
+half_champions <- half_season %>% filter(rank == 1)
 
 tot <- all_table %>% ungroup() %>% select(Season) %>% distinct() %>% nrow()
 

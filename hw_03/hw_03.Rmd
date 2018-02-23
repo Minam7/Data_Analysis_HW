@@ -39,6 +39,7 @@ R
 </p>
 
 ```{r, message=FALSE}
+# making data and league table
 library(devtools)
 library(dplyr)
 library(highcharter)
@@ -50,7 +51,6 @@ fdb = as.tbl(spain)
 # creating all league table
 laLiga <- fdb %>% filter(tier == 1)
 laLiga$Date <- as.Date(laLiga$Date, format="%Y-%m-%d") 
-
 #rbind two copies of the orignal df, simply reversing home/away team for each match
 rbind(
   laLiga %>%
@@ -63,14 +63,14 @@ rbind(
             goalsF = sum(GF),
             goalsA = sum(GA),
             goaldif = sum(GD),
-            W = sum(GD>0),
-            D = sum(GD==0),
-            L = sum(GD<0)
+            W = sum(GD > 0),
+            D = sum(GD == 0),
+            L = sum(GD < 0)
   ) %>% 
   mutate(score = W*3 + D) %>%
-  arrange(Season,desc(score)) %>% 
+  arrange(Season, desc(score), desc(goaldif)) %>% 
   group_by(Season) %>% 
-  mutate(rank = rank(-score) %>% as.integer()) -> atable
+  mutate(rank = row_number() %>% as.integer()) -> atable
 ```
 
 ***
@@ -81,16 +81,16 @@ rbind(
 <p dir="RTL">
 برای این نمودار ابتدا از جدول لیگ به ازای هر فصل، تیم دارای بیشترین امتیاز را انتخاب میکنیم، سپس بر اساس تیم گروهبندی کرده و تعداد رخداد هر تیم را محاسبه میکنیم.
 </p>
+
 ```{r, message=FALSE, warning=FALSE}
 champion_table <- atable %>% 
-  group_by(Season) %>% slice(which.max(score))
+  group_by(Season) %>% filter(rank == 1)
 champs <- champion_table %>% 
-  group_by(team) %>% summarise(cup = n())
+  group_by(team) %>% summarise(championships = n())
 
-p1 = ggplot(data = champs, mapping = aes(x = team, y = cup, fill = cup)) + ggtitle("number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p1 = ggplot(data = champs, mapping = aes(x = team, y = championships, fill = championships)) + ggtitle("number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p1
 ```
-
 
 ***
 
@@ -169,14 +169,18 @@ res_table <- rbind(
 
 all_table <- res_table %>% group_by(Season, team) %>% 
   mutate(score = ifelse(GD > 0, 3, ifelse(GD < 0, 0, 1)),
-         game_nu = dense_rank(Date)) %>% 
+         game_nu = dense_rank(Date),
+         time = Date) %>% 
   arrange(Season, team, game_nu) %>% 
   mutate(score_cum = cumsum(score),
          GF_cum = cumsum(GF),
          GA_cum = cumsum(GA),
          GD_cum = cumsum(GD)
          ) %>% 
-  select(Season, team, game_nu, score_cum, GF_cum, GA_cum, GD_cum)
+  select(Season, team, game_nu, time, score_cum, GF_cum, GA_cum, GD_cum)
+
+all_table <- all_table %>% ungroup() %>% group_by(Season, game_nu) %>% 
+  mutate(time = min(time)) %>% ungroup() %>% group_by(Season, team)
 ```
 
 ***
@@ -198,15 +202,9 @@ head to head
 # full season results
 full_season <- all_table %>% 
   filter(game_nu == max(game_nu)) %>% 
-  arrange(Season,desc(score_cum)) %>% 
-  group_by(Season) %>% 
-  mutate(rank = rank(-score_cum) %>% as.integer()) 
-
-# normalize based on laliga scoring system
-full_season[1243, 8] = 2
-full_season[476, 8] = 2
-full_season[62, 8] = 2
-full_season[152, 8] = 2
+  arrange(Season, desc(score_cum), desc(GD_cum)) %>% 
+  group_by(Season) %>%
+  mutate(rank = row_number() %>% as.integer()) 
 
 # champions in full season
 full_champions <- full_season %>% filter(rank == 1)
@@ -217,11 +215,9 @@ half_season <- all_table %>%
   filter(game_nu == floor(max(game_nu)/2)) %>% 
   arrange(Season,desc(score_cum), desc(GD_cum)) %>% 
   group_by(Season) %>% 
-  mutate(rank = rank(-score_cum) %>% as.integer()) 
+  mutate(rank = row_number() %>% as.integer()) 
 
-full_season[348, 8] = 2
-
-half_champions <- half_season %>% filter(rank == 1) %>% filter(GD_cum == max(GD_cum))
+half_champions <- half_season %>% filter(rank == 1)
 
 tot <- all_table %>% ungroup() %>% select(Season) %>% distinct() %>% nrow()
 
@@ -270,6 +266,28 @@ cat("only ", res[1]$sum, "percent of half season champions are full season champ
 <p dir="RTL">
 مانند شکل بالا تصویری از روند تغییر رتبه تیم ها در طول فصل ۱۹۹۸ رسم نمایید.
 </p>
+```{r, message=FALSE, warning=FALSE}
+a_rank <- all_table %>% 
+  group_by(Season, game_nu) %>% 
+  arrange(desc(score_cum), desc(GD_cum)) %>% 
+  mutate(rank = row_number() %>% as.integer())
+
+a_rank <- a_rank %>% ungroup() %>% filter(Season == 1998) %>% arrange(time)
+
+
+# team <- c("FCB", "RMA", "MLL", "VCF", "CEL", "RCD", "ESP", "ATH", "ZAR", "RSO", "BET", "VLD", "ATM", "ROV", "RAC", "ALV", "EXT", "VIL", "TEN", "SAL")
+# rank <- c(1:20)
+# team_names <- data.frame(team, rank)
+
+a_rank  %>% 
+  hchart(type = "line", hcaes(x = datetime_to_timestamp(time), y = rank, group = team)) %>% 
+  hc_yAxis(title = list(text = "Position"), reversed = TRUE, max = 20, tickInterval = 1, min = 1,
+           plotLines = list(list(color = "#FF0000", width = 2, value = 10, dashStyle = 'longdash'))
+           ) %>% 
+  hc_xAxis(categories = c("Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                          "Jul"), title = list(text = "date"), labels = list(format = '{value:%m-%d}')) %>% 
+  hc_title(text = "Team rankings in 1998/1999", style = list(fontWeight = "bold"))
+```
 
 ***
 
@@ -281,6 +299,50 @@ cat("only ", res[1]$sum, "percent of half season champions are full season champ
 ۹. جدولی مشابه بالا برای فصل ۲۰۱۲ از  کل نتایج طراحی کنید.
 </p>
 
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+league_2012 <- laLiga %>% filter(Season == 2012) %>% 
+  select(home, visitor, FT, hgoal, vgoal) %>% 
+  mutate(GD=hgoal-vgoal, result = ifelse(GD > 0, "H", ifelse(GD < 0, "A", "D")))
+
+team_pos <- full_season %>% ungroup() %>% filter(Season == 2012) %>% 
+  select(team, rank)
+
+league_2012 <- league_2012 %>% left_join(team_pos, by = c("home" = "team"))
+
+league_2012$home <- factor(league_2012$home, levels=rev(team_pos$team))
+league_2012$visitor <- factor(league_2012$visitor, levels=team_pos$team)
+
+league_2012$title <- "Spain laLiga 2012/2013 - RESULTS MATRIX"
+
+matrix <- ggplot(league_2012, aes(visitor, home, fill = factor(result))) + 
+  geom_tile(colour="steelblue4", size=1.5, stat="identity", height=1, width=1) + 
+  geom_text(data=league_2012, aes(visitor, home, label = FT), color="black", size=rel(2)) +
+  scale_x_discrete(expand = c(0, 0), position = "top") +
+  scale_y_discrete(expand = c(0, 0)) +
+  xlab("") + 
+  ylab("") +
+  facet_grid(. ~ title) +
+  theme(
+    strip.background = element_rect(fill="darkblue"),
+    strip.text = element_text(size=15, colour="white"),
+    strip.placement = "outside",
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(fill=NA,color="steelblue4", size=0.5, linetype="solid"),
+    axis.line = element_blank(),
+    axis.ticks = element_blank(), 
+    axis.text = element_text(color="white", size=rel(1)),
+    panel.background = element_rect(fill="darkblue"),
+    plot.background = element_rect(fill="steelblue4"),
+    legend.position = "none",
+    axis.text.x  = element_text(angle=75, vjust=0.5, hjust=0)        
+  ) 
+matrix
+```
+
+<div align="center">
+<img  src="images/Rplot.svg"  align = 'center'>
+</div>
 ***
 
 <p dir="RTL">

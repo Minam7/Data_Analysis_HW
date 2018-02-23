@@ -22,21 +22,21 @@ rbind(
             goalsF = sum(GF),
             goalsA = sum(GA),
             goaldif = sum(GD),
-            W = sum(GD>0),
-            D = sum(GD==0),
-            L = sum(GD<0)
+            W = sum(GD > 0),
+            D = sum(GD == 0),
+            L = sum(GD < 0)
   ) %>% 
   mutate(score = W*3 + D) %>%
-  arrange(Season,desc(score)) %>% 
+  arrange(Season, desc(score), desc(goaldif)) %>% 
   group_by(Season) %>% 
-  mutate(rank = rank(-score) %>% as.integer()) -> atable
+  mutate(rank = row_number() %>% as.integer()) -> atable
 
 ##################################################
 
 champion_table <- atable %>% 
-  group_by(Season) %>% slice(which.max(score))
+  group_by(Season) %>% filter(rank == 1)
 champs <- champion_table %>% 
-  group_by(team) %>% summarise(cup = n())
+  group_by(team) %>% summarise(championships = n())
 
-p1 = ggplot(data = champs, mapping = aes(x = team, y = cup, fill = cup)) + ggtitle("number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p1 = ggplot(data = champs, mapping = aes(x = team, y = championships, fill = championships)) + ggtitle("number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p1
