@@ -6,10 +6,10 @@ library(engsoccerdata)
 library(ggplot2)
 
 fdb = as.tbl(spain)
-View(fdb)
 
 # creating all league table
 laLiga <- fdb %>% filter(tier == 1)
+laLiga$Date <- as.Date(laLiga$Date, format="%Y-%m-%d") 
 #rbind two copies of the orignal df, simply reversing home/away team for each match
 rbind(
   laLiga %>%
@@ -30,7 +30,6 @@ rbind(
   arrange(Season,desc(score)) %>% 
   group_by(Season) %>% 
   mutate(rank = rank(-score) %>% as.integer()) -> atable
-View(atable)
 
 ##################################################
 

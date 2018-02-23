@@ -31,6 +31,11 @@ highcharter
 
 از آنجایی که برای حل سوالات نیاز به جدول لیگ در تمام سالها داریم، ابتدا بر اساس کد زیر جدول زیر را بدست میآوریم.
 در این کد، برای هر فصل تعداد برد، مساوی و باخت هر تیم را بدست میآوریم و در نهایت امتیاز تیمها را محاسبه میکنیم.
+همچنین لازم به ذکر است که برای نمایش تاریخ، فرمت را به فرمت 
+Date
+در 
+R 
+تبدیل میکنیم.
 </p>
 
 ```{r, message=FALSE}
@@ -41,10 +46,11 @@ library(engsoccerdata)
 library(ggplot2)
 
 fdb = as.tbl(spain)
-View(fdb)
 
 # creating all league table
 laLiga <- fdb %>% filter(tier == 1)
+laLiga$Date <- as.Date(laLiga$Date, format="%Y-%m-%d") 
+
 #rbind two copies of the orignal df, simply reversing home/away team for each match
 rbind(
   laLiga %>%
@@ -94,6 +100,7 @@ p1
 </p>
 <p dir="RTL">
 **کسلکنندهترین تیمها**
+<br>
 برای نمایش کسلکنندهترین تیمها معیاری را برای کسلکنندگی معرفی میکنیم که آن نسبت گلهای بازیهای تیمها به تعداد بازی تیمها است. سپس بر اساس تیم گروهبندی می کنیم و میانگین نسبت کسلکنندهگی تیمها را بدست آورده و ده تیم دارای کمترین مقدار را به عنوان کسلکنندهترین تیمها انتخاب میکنیم.
 </p>
 
@@ -113,6 +120,7 @@ highchart() %>%
 ```
 <p dir="RTL">
 **کسلکنندهترین فصلها**
+<br>
 برای نمایش کسلکنندهترین فصلها، ابتدا معیاری برای کسلکنندگی تعریف میکنیم که برابر است با متوسط گل زدهشده در هر بازی. برای این منظور ابتدا تعداد گل بازیها را بدستآورده و سپس برای هر فصل متوسط تعداد گلزدهشده را مییابیم و در نهایت فصل هایی که دارای کمترین متوسط گل هستند را به عنوان کسلکنندهترین فصلها انتخاب میکنیم.
 </p>
 ```{r, message=FALSE, warning=FALSE}
@@ -134,10 +142,99 @@ highchart() %>%
 
 
 ***
+<p dir="RTL">
+برای حل سوالاتی که در ادامه میآیند، جدول نتایج جدیدی میسازیم که در آن برای هر بازی و هر تیم، دادههایی همچون تیم رقیب، گل زدهشده، گل خورده، تفاضل گل، تاریخ و فصل بازی را نگهداری میکنیم.
+همچنین، جدول لیگ جدیدی میسازیم که در آن در هر فصل و برای هر تیم، دادههایی از قبیل شمارهی بازی، امتیاز تجمیعی تیم تا به این بازی، تعداد گل خوردهشدهی تجمیعی، تعداد گل زدهشدهی تجمیعی و اختلاف گل تجمیعی را محاسبه میکنیم.
+<br>
+برای محاسبهی حاصل تجمیعی از تابع
+cumsum 
+و برای محاسبهی شمارهی بازی بر اساس تاریخ از تابع
+dense_rank 
+بهره میبریم.
+</p>
+```{r, message=FALSE, warning=FALSE}
+# full league results
+res_table <- rbind(
+  laLiga %>% mutate(team = home,
+                    opponent = visitor,
+                    GF = hgoal,
+                    GA = vgoal,
+                    GD = GF-GA) ,
+  laLiga %>% mutate(team = visitor,
+                    opponent = home, 
+                    GF = vgoal,
+                    GA = hgoal,
+                    GD = GF-GA)
+  ) %>% select(Date, Season, team, opponent, GF, GA, GD)
+
+all_table <- res_table %>% group_by(Season, team) %>% 
+  mutate(score = ifelse(GD > 0, 3, ifelse(GD < 0, 0, 1)),
+         game_nu = dense_rank(Date)) %>% 
+  arrange(Season, team, game_nu) %>% 
+  mutate(score_cum = cumsum(score),
+         GF_cum = cumsum(GF),
+         GA_cum = cumsum(GA),
+         GD_cum = cumsum(GD)
+         ) %>% 
+  select(Season, team, game_nu, score_cum, GF_cum, GA_cum, GD_cum)
+```
+
+***
 
 <p dir="RTL">
 ۳. در چند درصد موارد قهرمان نیم فصل در پایان فصل قهرمان شده است؟
 </p>
+<p dir="RTL">
+برای حل این سوال از جدول لیگ جدیدی که در بالا ایجاد کردیم استفاده میکنیم، که برای محاسبهی نتایج پایان فصل، بر اساس بیشترین تعداد بازی فیلتر کرده و برای بدست آوردن نتایج نیمفصل بر اساس نصف بیشترین تعداد بازی فیلتر میکنیم. در نهایت بر حسب امتیاز تجمیعی ردهبندی کرده و تیمی که بیشترین امتیاز را داشته باشد را به عنوان قهرمان فصل اعلام میکنیم.
+<br>
+سپس قهرمانان نیمفصل و کل فصل را با یکدیگر بر اساس فصل
+inner_join 
+کرده و ستون دو تیم قهرمان نیمفصل و کل فصل را در هر فصل مقایسه میکنیم. در نهایت نسبت حاصل جمع این ستون، به تعداد فصلها درصد مورد نظر را به ما میدهد.
+(در این سوال برای پیادهسازی روش رتبهبندی در لالیگا، در مواردی که تیم قهرمان با تیم دوم هر امتیاز بوده است، به صورت دستی و بر اساس معیار
+head to head 
+قهرمان انتخاب شدهاست.)
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# full season results
+full_season <- all_table %>% 
+  filter(game_nu == max(game_nu)) %>% 
+  arrange(Season,desc(score_cum)) %>% 
+  group_by(Season) %>% 
+  mutate(rank = rank(-score_cum) %>% as.integer()) 
+
+# normalize based on laliga scoring system
+full_season[1243, 8] = 2
+full_season[476, 8] = 2
+full_season[62, 8] = 2
+full_season[152, 8] = 2
+
+# champions in full season
+full_champions <- full_season %>% filter(rank == 1)
+
+  
+# half season results
+half_season <- all_table %>% 
+  filter(game_nu == floor(max(game_nu)/2)) %>% 
+  arrange(Season,desc(score_cum), desc(GD_cum)) %>% 
+  group_by(Season) %>% 
+  mutate(rank = rank(-score_cum) %>% as.integer()) 
+
+full_season[348, 8] = 2
+
+half_champions <- half_season %>% filter(rank == 1) %>% filter(GD_cum == max(GD_cum))
+
+tot <- all_table %>% ungroup() %>% select(Season) %>% distinct() %>% nrow()
+
+half_full <- inner_join(half_champions, full_champions, by = "Season")
+
+half_full <- half_full %>% mutate(same = ifelse(team.x == team.y, 1, 0))
+
+yes <- half_full %>% ungroup() %>%  summarise(sum(same))
+
+res <- yes*100/tot
+
+cat("only ", res[1]$sum, "percent of half season champions are full season champions.")
+```
 
 ***
 
