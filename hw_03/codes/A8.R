@@ -16,4 +16,7 @@ rank_1998  %>%
            ) %>% 
   hc_xAxis(type = "datetime", title = list(text = "date"), dateTimeLabelFormats = list(day = '%d of %b')) %>% 
   hc_title(text = "Team rankings in 1998/1999", style = list(fontWeight = "bold"))
-  
+
+
+ranking_1998 <- ggplot(data=rank_1998, aes(x= time, y=rank, colour=team)) + geom_line() + scale_y_reverse(limit=c(20,0)) + ggtitle("Team rankings in 1998/1999")
+ranking_1998
