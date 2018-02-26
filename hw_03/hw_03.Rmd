@@ -118,6 +118,7 @@ highchart() %>%
   hc_title(text = "Most boring teams", style = list(fontWeight = "bold")) %>%
   hc_add_theme(hc_theme_flat())
 ```
+
 <p dir="RTL">
 **کسلکنندهترین فصلها**
 <br>
@@ -140,11 +141,11 @@ highchart() %>%
   hc_add_theme(hc_theme_flat())
 ```
 
-
 ***
 <p dir="RTL">
 برای حل سوالاتی که در ادامه میآیند، جدول نتایج جدیدی میسازیم که در آن برای هر بازی و هر تیم، دادههایی همچون تیم رقیب، گل زدهشده، گل خورده، تفاضل گل، تاریخ و فصل بازی را نگهداری میکنیم.
 همچنین، جدول لیگ جدیدی میسازیم که در آن در هر فصل و برای هر تیم، دادههایی از قبیل شمارهی بازی، امتیاز تجمیعی تیم تا به این بازی، تعداد گل خوردهشدهی تجمیعی، تعداد گل زدهشدهی تجمیعی و اختلاف گل تجمیعی را محاسبه میکنیم.
+سپس برای بدست آوردن هفتهی بازی، بر اساس شماره بازی و فصل گروهبندی کرده و هفتهی هر بازی را نیز بدست میآوریم، در نهایت این گروهبندی را حذف کرده و جدول نهایی را بر اساس تیم و فصل گروهبندی میکنیم.
 <br>
 برای محاسبهی حاصل تجمیعی از تابع
 cumsum 
@@ -238,12 +239,109 @@ cat("only ", res[1]$sum, "percent of half season champions are full season champ
 ۴. در بین سال های ۲۰۰۱ تا ۲۰۱۰ گربه سیاه تیم های بزرگ چه تیم هایی بوده است؟
 </p>
 
+<p dir="RTL">
+برای حل این سوال ابتدا تیمهای بزرگ و گربه سیاه را تعریف میکنیم. چهار تیم بزرگ عبارتند از:
+<br>
+بارسلونا، رئال مادرید، اتلتیک بیلبائو و والنسیا (این تیمها در طول این چند سال بیشترین قهرمانی و بیشترین امتیازات را داشتهاند.)
+<br>
+سپس گربه سیاه را تیمی تعریف میکنیم که رتبهاش از نیمهی جدول به پایین بوده و از طرفی با این تیمهای بزرگ یا مساوی کردهاست و یا باخته است.
+<br>
+برای حل این سوال از جدول لیگی که پیش از سوال ۳ آن را بدست آوردهایم استفاده میکنیم. برای بدست آوردن رتبهی هر تیم در هر هفته از بازیها، بر اساس فصل و شمارهی بازی گروهبندی میکنیم و سپس بر اساس بیشترین امتیاز و تفاضل گل، رتبهبندی تیمها را بدست میآوریم. 
+<br>
+سپس از جدول نتایجی که پیش از سوال ۳ بدست آوردهایم استفاده میکنیم، که برای بدست آوردن رتبهی تیم حریف، این جدول را با جدول امتیاز به ازای هر بازی تیمها
+join 
+میکنیم. سپس بازیهایی که تیمهای مورد نظر ما بازی کردهاند را انتخاب کرده و در هر فصل، بازیهایی که این تیمها باختهاند در حالی که حریف آنها در نیمهی جدول به پایین قرار داشته است را فیلتر میکنیم. در نهایت بر اساس تیمها و حریفانشان گروهبندی کرده و تیمهایی که بیشترین باخت را به آنها داشتهاند را به عنوان گربه سیاه تیمهای بزرگ معرفی میکنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+a_rank <- all_table %>% 
+  group_by(Season, game_nu) %>% 
+  arrange(desc(score_cum), desc(GD_cum)) %>% 
+  mutate(rank = row_number() %>% as.integer())
+
+res_table <- res_table %>% group_by(Season, team) %>% 
+  mutate(score = ifelse(GD > 0, 3, ifelse(GD < 0, 0, 1)),
+         game_nu = dense_rank(Date))
+
+all_data <- res_table %>% inner_join(a_rank, by = c("Season", "game_nu", "opponent" = "team"))
+
+interval <- all_data %>% filter(Season < 2011 & Season > 2000) %>% 
+  filter(team == "Valencia CF" | team == "Real Madrid" | team == "Atletico Madrid" | team == "FC Barcelona") %>%
+  ungroup %>% group_by(Season) %>% 
+  filter(GD < 1) %>%
+  filter(rank > round(max(rank)/2)) %>% 
+  filter(opponent != "Valencia CF" & opponent != "Real Madrid" & opponent != "Atletico Madrid" & opponent != "FC Barcelona") %>% 
+  ungroup() %>% group_by(team, opponent) %>% 
+  summarise(lost = n()) %>% 
+  ungroup() %>% group_by(team) %>% 
+  filter(lost == max(lost))
+
+interval %>% 
+  hchart(type = "scatter", hcaes(x = opponent, y = lost, group = team)) %>% 
+  hc_yAxis(title = list(text = "losts")) %>% 
+  hc_xAxis(type = 'category', title = list(categories = interval$opponent, text = "opponent")) %>% 
+  hc_title(text = "Best Four Teams Black Cats in 2001-2010", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_darkunica())
+```
+
 ***
 
 <p dir="RTL">
 ۵. در تاریخ لالیگا کدام تیم رکورددار زودترین قهرمانی است؟
 همچنین کدام تیم مقتدرانه ترین قهرمانی را داشته است؟
 </p>
+
+<p dir="RTL">
+**زودترین قهرمانی**
+<br>
+برای حل این سوال از جدول لیگی که پیش از سوال ۳ آن را بدست آوردهایم استفاده میکنیم. برای بدست آوردن رتبهی هر تیم در هر هفته از بازیها، بر اساس فصل و شمارهی بازی گروهبندی میکنیم و سپس بر اساس بیشترین امتیاز و تفاضل گل، رتبهبندی تیمها را بدست میآوریم. 
+<br>
+حال برای بدست آوردن زودترین قهرمانی، تیمهای دارای رتبه یک و دو را در هفته فیلتر میکنیم، سپس این دو جدول را بر اساس فصل و شمارهی بازی
+join 
+کرده و ستون اختلاف امتیاز تیم اول و دوم را به این جدول اضافه میکنیم. سپس ستون بازی باقیمانده را برای هر فصل محاسبه میکنیم.
+در نهایت در صورتی که اختلاف امتیاز از سه برابر بازیهای باقیمانده بیشتر باشد، پس این تیم حتما قهرمان شدهاست و تیم دوم دیگر نمیتواند به این تیم غلبه کند. حال درست بودن چنین فرضی را برای این تیمها محاسبه کرده و در نهایت تیمی که داری بیشترین بازی باقیمانده و ویژگی فوق باشد را به عنوان زودترین قهرمانی نمایش میدهیم.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# earliest championship
+a_rank <- all_table %>% 
+  group_by(Season, game_nu) %>% 
+  arrange(desc(score_cum), desc(GD_cum)) %>% 
+  mutate(rank = row_number() %>% as.integer())
+
+first <- a_rank %>% group_by(Season, game_nu) %>% filter(rank == 1)
+second <- a_rank %>% group_by(Season, game_nu) %>% filter(rank == 2)
+first_sec <- first %>% inner_join(second, by = c("Season", "game_nu")) %>% 
+  mutate(diff = score_cum.x - score_cum.y) %>% 
+  select(Season = Season, game_nu = game_nu, team = team.x, diff = diff) %>% 
+  ungroup() %>% group_by(Season) %>% 
+  mutate(remaining_game = max(game_nu) - game_nu, is_win = ifelse(remaining_game*3 < diff, TRUE, FALSE)) %>% 
+  filter(is_win == TRUE) %>% ungroup() %>% 
+  filter(remaining_game == max(remaining_game)) %>% 
+  select(Season = Season, Team = team, Game_Number = game_nu, Remaining_Game = remaining_game, Score_Difference = diff) %>% 
+  arrange(-Score_Difference)
+  
+knitr::kable(first_sec)
+```
+
+<p dir="RTL">
+**مقتدرانهترین قهرمانی**
+<br>
+برای حل این سوال، ابتدا معنی مقتدرانهترین قهرمانی را تعریف میکنیم که برابر است با بیشترین اختلاف قهرمان فصل با نایب قهرمان. حال از جدول
+full_season 
+که در سوال ۳ از آن استفاده شدهبود استفاده کرده و تیمهای رتبه یک و دو را انتخاب میکنیم. سپس این دو جدول را بر اساس فصل
+join 
+کرده و ستون اختلاف امتیاز تیم اول و دوم را محاسبه میکنیم.
+در نهایت تیمی که دارای بیشترین اختلاف امیتاز است را به عنوات جواب نمایش میدهیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# most powerful championship in history
+second <- full_season %>% filter(rank == 2)
+first <- full_season %>% filter(rank == 1)
+first_sec <- first %>% inner_join(second, by = "Season") %>% mutate(diff = score_cum.x - score_cum.y) %>% select(Season = Season, team = team.x, diff = diff)
+powerful_champ <- first_sec %>% ungroup %>% filter(diff == max(diff))
+cat('Most powerful championship is:', powerful_champ[2]$team, " in ", powerful_champ[1]$Season)
+```
 
 ***
 
@@ -257,6 +355,60 @@ cat("only ", res[1]$sum, "percent of half season champions are full season champ
 ۷. زودترین سقوط مال کدام تیم بوده است؟
 </p>
 
+<p dir="RTL">
+برای بدستآوردن زودترین سقوط همانند زودترین قهرمانی عمل میکنیم، با این تفاوت که این بار، در صورتی که اختلاف امتیاز سه تیم آخر جدول با تیم چهارم از آخر بیشتر از سه برابر بازیهای باقیمانده باشد، سقوط این تیمها حتمی شدهاست.
+<br>
+برای بدستآوردن زودترین سقوط، تیمهای دارای رتبه آخر، یکی مانده به آخر، دو تا مانده به آخر و سه تا مانده به آخر را فیلتر میکنیم. سپس هر یک از جداول را  با جدول رتبهی سه تا مانده به آخر، بر اساس فصل و شمارهی بازی 
+join 
+کرده و ستون اختلاف امتیاز دو تیم را اضافه میکنیم. سپس ستون بازیهای باقیمانده را برای هر فصل محاسبه میکنیم. در نهایت تیمی که ویژگی زودترین سقوط را داشته باشد و بیشترین بازی باقیمانده را داشته باشد، زودترین سقوط تاریخ را رقم زدهاست.
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+# earliest downfall
+last <- a_rank %>% group_by(Season, game_nu) %>% filter(rank == max(rank))
+one_before_last <- a_rank %>% group_by(Season, game_nu) %>% filter(rank == max(rank) - 1)
+two_before_last <- a_rank %>% group_by(Season, game_nu) %>% filter(rank == max(rank) - 2)
+three_before_last <- a_rank %>% group_by(Season, game_nu) %>% filter(rank == max(rank) - 3)
+
+last_fourth <- last %>% inner_join(three_before_last, by = c("Season", "game_nu")) %>% 
+  mutate(diff = score_cum.y - score_cum.x) %>% 
+  select(Season = Season, game_nu = game_nu, team = team.x, diff = diff) %>% 
+  group_by(Season) %>% 
+  mutate(remaining_game = max(game_nu) - game_nu, is_fall = ifelse(remaining_game*3 < diff, TRUE, FALSE)) %>% 
+  filter(is_fall) %>% ungroup() %>% 
+  filter(remaining_game == max(remaining_game)) %>% 
+  select(Season = Season, Team = team, Game_Number = game_nu, Remaining_Game = remaining_game, Score_Difference = diff) %>% 
+  arrange(-Score_Difference)
+
+one_before_last_fourth <- one_before_last %>% inner_join(three_before_last, by = c("Season", "game_nu")) %>% 
+  mutate(diff = score_cum.y - score_cum.x) %>% 
+  select(Season = Season, game_nu = game_nu, team = team.x, diff = diff) %>% 
+  group_by(Season) %>% 
+  mutate(remaining_game = max(game_nu) - game_nu, is_fall = ifelse(remaining_game*3 < diff, TRUE, FALSE)) %>% 
+  filter(is_fall) %>% ungroup() %>% 
+  filter(remaining_game == max(remaining_game)) %>% 
+  select(Season = Season, Team = team, Game_Number = game_nu, Remaining_Game = remaining_game, Score_Difference = diff) %>% 
+  arrange(-Score_Difference)
+
+falldown <- rbind(last_fourth, one_before_last_fourth)
+
+two_before_last_fourth <- two_before_last %>% inner_join(three_before_last, by = c("Season", "game_nu")) %>% 
+  mutate(diff = score_cum.y - score_cum.x) %>% 
+  select(Season = Season, game_nu = game_nu, team = team.x, diff = diff) %>% 
+  group_by(Season) %>% 
+  mutate(remaining_game = max(game_nu) - game_nu, is_fall = ifelse(remaining_game*3 < diff, TRUE, FALSE)) %>% 
+  filter(is_fall) %>% ungroup() %>% 
+  filter(remaining_game == max(remaining_game)) %>% 
+  select(Season = Season, Team = team, Game_Number = game_nu, Remaining_Game = remaining_game, Score_Difference = diff) %>% 
+  arrange(-Score_Difference)
+
+falldown <- rbind(falldown, two_before_last_fourth)
+
+falldown <- falldown %>% filter(Remaining_Game == max(Remaining_Game))
+
+knitr::kable(falldown)
+```
+
 ***
 
 <div align="center">
@@ -264,28 +416,26 @@ cat("only ", res[1]$sum, "percent of half season champions are full season champ
 </div>
 
 <p dir="RTL">
-مانند شکل بالا تصویری از روند تغییر رتبه تیم ها در طول فصل ۱۹۹۸ رسم نمایید.
+۸. مانند شکل بالا تصویری از روند تغییر رتبه تیم ها در طول فصل ۱۹۹۸ رسم نمایید.
 </p>
+
+<p dir="RTL">
+برای این سوال از جدول به همراه رتبهبندی هفتگی تیمها در سوال ۵ استفاده میکنیم. در نتیجه تنها کافیست که فصل ۱۹۹۸ را انتخاب کرده و بر اساس هفتهی بازی جدول را مرتب کنیم.
+</p>
+
 ```{r, message=FALSE, warning=FALSE}
-a_rank <- all_table %>% 
-  group_by(Season, game_nu) %>% 
-  arrange(desc(score_cum), desc(GD_cum)) %>% 
-  mutate(rank = row_number() %>% as.integer())
-
-a_rank <- a_rank %>% ungroup() %>% filter(Season == 1998) %>% arrange(time)
-
+rank_1998 <- a_rank %>% ungroup() %>% filter(Season == 1998) %>% arrange(time)
 
 # team <- c("FCB", "RMA", "MLL", "VCF", "CEL", "RCD", "ESP", "ATH", "ZAR", "RSO", "BET", "VLD", "ATM", "ROV", "RAC", "ALV", "EXT", "VIL", "TEN", "SAL")
 # rank <- c(1:20)
 # team_names <- data.frame(team, rank)
 
-a_rank  %>% 
+rank_1998  %>% 
   hchart(type = "line", hcaes(x = datetime_to_timestamp(time), y = rank, group = team)) %>% 
   hc_yAxis(title = list(text = "Position"), reversed = TRUE, max = 20, tickInterval = 1, min = 1,
-           plotLines = list(list(color = "#FF0000", width = 2, value = 10, dashStyle = 'longdash'))
+           plotLines = list(list(color = "#FF0000", width = 2, value = 10, dashStyle = 'shortdash'))
            ) %>% 
-  hc_xAxis(categories = c("Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                          "Jul"), title = list(text = "date"), labels = list(format = '{value:%m-%d}')) %>% 
+  hc_xAxis(type = "datetime", title = list(text = "date"), dateTimeLabelFormats = list(day = '%d of %b')) %>% 
   hc_title(text = "Team rankings in 1998/1999", style = list(fontWeight = "bold"))
 ```
 
