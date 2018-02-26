@@ -21,3 +21,6 @@ interval %>%
   hc_xAxis(type = 'category', title = list(categories = interval$opponent, text = "opponent")) %>% 
   hc_title(text = "Best Four Teams Black Cats in 2001-2010", style = list(fontWeight = "bold")) %>% 
   hc_add_theme(hc_theme_darkunica())
+
+p1 = ggplot(data = interval, mapping = aes(x = opponent, y = lost, color = team)) + ggtitle("Best Four Teams Black Cats in 2001-2010") + geom_point(stat="identity") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p1
