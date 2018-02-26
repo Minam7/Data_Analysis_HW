@@ -146,6 +146,24 @@ derby <- res_table %>%
            (team == "FC Barcelona" & opponent == "Espanyol Barcelona") |
            (team == "Espanyol Barcelona" & opponent == "FC Barcelona") |
            (team == "Valencia CF" & opponent == "Levante UD") |
-           (team == "Levante UD" & opponent == "Valencia CF"))
+           (team == "Levante UD" & opponent == "Valencia CF")) %>% 
+  mutate(allG = GA + GF) %>% 
+  mutate(coler = ifelse((team == "Real Madrid" & opponent == "Atletico Madrid") |
+                          (team == "Atletico Madrid" & opponent == "Real Madrid"),
+                        "Madrid derby", 
+                        ifelse((team == "Real Madrid" & opponent == "FC Barcelona") |
+                                 (team == "FC Barcelona" & opponent == "Real Madrid"),
+                               "El Clásico", ifelse((team == "FC Barcelona" & opponent == "Espanyol Barcelona") |
+                                                      (team == "Espanyol Barcelona" & opponent == "FC Barcelona"), 
+                                                    "Barcelona derby", ifelse((team == "Valencia CF" & opponent == "Levante UD") |
+                                                                                (team == "Levante UD" & opponent == "Valencia CF")
+                                                                              , "Valencia derby", NA))))) %>% 
+  ungroup() %>% group_by(Season) %>% filter(allG == max(allG))
 
+
+derby %>% 
+  hchart(type = "column", hcaes(x = Season, y = allG, group = coler)) %>% 
+  hc_yAxis(title = list(text = "average goal")) %>% 
+  hc_xAxis(title = list(text = "season")) %>% 
+  hc_title(text = "Derby goals in years", style = list(fontWeight = "bold"))
 

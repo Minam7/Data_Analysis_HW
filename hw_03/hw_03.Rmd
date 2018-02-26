@@ -90,6 +90,11 @@ champs <- champion_table %>%
 
 p1 = ggplot(data = champs, mapping = aes(x = team, y = championships, fill = championships)) + ggtitle("number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p1
+
+champs %>% 
+  hchart(type = "column",hcaes(x = team, y = championships, color = championships)) %>% 
+  hc_title(text = "Number of championships based on team", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_sandsignika())
 ```
 
 ***
@@ -340,7 +345,8 @@ second <- full_season %>% filter(rank == 2)
 first <- full_season %>% filter(rank == 1)
 first_sec <- first %>% inner_join(second, by = "Season") %>% mutate(diff = score_cum.x - score_cum.y) %>% select(Season = Season, team = team.x, diff = diff)
 powerful_champ <- first_sec %>% ungroup %>% filter(diff == max(diff))
-cat('Most powerful championship is:', powerful_champ[2]$team, " in ", powerful_champ[1]$Season)
+cat('most powerful championship is:', powerful_champ[2]$team, " in ", powerful_champ[1]$Season, " with ", powerful_champ[3]$diff, "score difference.")
+
 ```
 
 ***
@@ -348,6 +354,47 @@ cat('Most powerful championship is:', powerful_champ[2]$team, " in ", powerful_c
 <p dir="RTL">
 ۶. طولانی ترین نوار پیروزی مساوی و شکست مال چه تیم هایی است؟
 </p>
+
+```{r, message=FALSE, warning=FALSE}
+longest_run <- res_table %>%
+  ungroup() %>% group_by(team) %>% 
+  arrange(Season, game_nu) %>%
+  mutate(run = sequence(rle(as.character(score))$lengths)) %>% 
+  group_by(score) %>% 
+  filter(run == max(run)) %>% 
+  arrange(-run) %>% 
+  ungroup()
+```
+<p dir="RTL">
+بیشترین برد متوالی:
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+knitr::kable(longest_run %>% 
+               filter(score == 3) %>% 
+               select(Season = Season, Team = team, Strike = run), "markdown")
+
+```
+<p dir="RTL">
+بیشترین مساوی متوالی:
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+knitr::kable(longest_run %>% 
+               filter(score == 1) %>% 
+               select(Season = Season, Team = team, Strike = run), "markdown")
+
+```
+<p dir="RTL">
+بیشترین باخت متوالی:
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+knitr::kable(longest_run %>% 
+               filter(score == 0) %>% 
+               select(Season = Season, Team = team, Strike = run))
+
+```
 
 ***
 
@@ -498,3 +545,209 @@ matrix
 <p dir="RTL">
 ۱۰. سه آماره به همراه نمودار فردوسی پسند استخراج کنید.
 </p>
+<p dir="RTL">
+**ضعیف ترین تیم های تاریخ لیگ اسپانیا**
+<br>
+برای دست آوردن ضعیف ترین تیم های تاریخ، ابتدا معیاری برای ضعیف بودن تیم تعریف می کنیم، که عبارت است از کسب کمترین امتیاز به ازای هر بازی. برای پیاده سازی این موضوع، تیم هایی که رتبه ی آخر را در هر فصل بدست آورده اند را انتخاب کرده و برای آن ها نسبت امتیاز کسب شده به کل امتیازهایی که می توان کسب کرد(۳ برابر تعداد بازی ها) را بدست میآوریم. در نهایت تیم هایی که دارای کمترین مقادیر هستند، ضعیف ترین تیم های تایرخ هستند.
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+###### 10 weakest teams of all time
+weak <- full_season %>%
+  filter(rank == max(rank)) %>% 
+  mutate(score_rate = round(10*score_cum/(max(game_nu)*3))) %>% 
+  ungroup %>% filter(score_rate == min(score_rate))
+
+weak_plot = ggplot(data = weak, mapping = aes(y = Season, x = team, color = score_cum/10)) + geom_point(stat="identity") + scale_color_gradient(low="red", high="blue") + ggtitle("Weakest teams of all time") + ylab("season") + guides(color=guide_legend(title="score rate")) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+weak_plot
+```
+
+***
+<p dir="RTL">
+**تاثیر نتیجه ی رتبه ی ۱۳ در سال های ۱۹۹۰ - ۱۹۹۹ در رتبه ی آینده ی تیم ها**
+<br>
+برای حل این سوال، به ازای هر سال بین ۱۹۹۰ تا ۱۹۹۹، تیمی که دارای رتبه ی ۱۳ شده است را بدست آورده و میانگین رتبه ی این تیم را به ازای فصل های بعدی بدست می آوریم.
+<br>
+نتیجه نشان می دهد که از بین نه تیم متمایز دارای رتبه ی سیزده در این ده سال، تنها دو تیم میانگین رتبه ی کمتر از ۱۰ داشته اند و نحسی عدد ۱۳ را بر روی آینده ی تیم ها نمایش می دهد.
+</p>
+
+```{r, message=FALSE, warning=FALSE}
+###### 1990 rank 13 bad luck in 1991 - 2016
+bad_luck <- full_season %>% 
+  filter(Season == 1990) %>%
+  filter(rank == 13)
+
+
+what <- full_season %>% 
+  filter(Season > 1990) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- what
+
+bad_luck <- full_season %>% 
+  filter(Season == 1991) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1991) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1992) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1992) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1993) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1993) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1994) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1994) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1995) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1995) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1996) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1996) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1997) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1997) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1998) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1998) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+bad_luck <- full_season %>% 
+  filter(Season == 1999) %>%
+  filter(rank == 13)
+
+what <- full_season %>% 
+  filter(Season > 1999) %>% 
+  filter(team == bad_luck$team) %>% 
+  ungroup() %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+destiny <- rbind(destiny, what)
+
+destiny <- destiny %>% group_by(team) %>% 
+  summarise(rank = round(mean(rank)))
+
+thirteen_plot = ggplot(data = destiny, mapping = aes(y = rank, x = team, fill = rank)) + geom_bar(stat="identity") + scale_fill_gradient(low="brown1", high="brown4") + ggtitle("Influence of ranking 13 in team future!") + ylab("average rank") + guides(color=guide_legend(title="average rank")) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+thirteen_plot
+```
+
+***
+<p dir="RTL">
+**پر گل ترین دربی هر فصل کدام دربی بوده است؟**
+<br>
+دربی های مهم لالیگا عبارتند از:
+<br>
+ال کلاسیکو: بارسلونا - رئال مادرید
+<br>
+دربی مادرید: رئال مادرید - آتلتیکو مادرید
+<br>
+دربی باسلونا: بارسلونا - اسپانیول
+<br>
+دربی والنسیا: والنسیا - لوانته
+<br>
+برای حل این سوال، بازی های دربی بالا را فیلتر کرده و مجموع گل هر بازی را محاسبه می کنیم. هم چنین لیبلی برای هر جفت تیم های متمایز در دربی در نظر میگیریم تا دربی ها از یکدیگر متمایز شوند. در نهایت بر اساس فصل گروه بندی کرده و پر گل ترین بازی را نمایش می دهیم.
+</p>
+```{r, message=FALSE, warning=FALSE}
+###### derby full results in years
+derby <- res_table %>% 
+  group_by(Season) %>% 
+  filter((team == "Real Madrid" & opponent == "Atletico Madrid") |
+           (team == "Atletico Madrid" & opponent == "Real Madrid") |
+           (team == "Real Madrid" & opponent == "FC Barcelona") |
+           (team == "FC Barcelona" & opponent == "Real Madrid") |
+           (team == "FC Barcelona" & opponent == "Espanyol Barcelona") |
+           (team == "Espanyol Barcelona" & opponent == "FC Barcelona") |
+           (team == "Valencia CF" & opponent == "Levante UD") |
+           (team == "Levante UD" & opponent == "Valencia CF")) %>% 
+  mutate(allG = GA + GF) %>% 
+  mutate(coler = ifelse((team == "Real Madrid" & opponent == "Atletico Madrid") |
+                          (team == "Atletico Madrid" & opponent == "Real Madrid"),
+                        "Madrid derby", 
+                        ifelse((team == "Real Madrid" & opponent == "FC Barcelona") |
+                                 (team == "FC Barcelona" & opponent == "Real Madrid"),
+                               "El Clásico", ifelse((team == "FC Barcelona" & opponent == "Espanyol Barcelona") |
+                                                      (team == "Espanyol Barcelona" & opponent == "FC Barcelona"), 
+                                                    "Barcelona derby", ifelse((team == "Valencia CF" & opponent == "Levante UD") |
+                                                                                (team == "Levante UD" & opponent == "Valencia CF")
+                                                                              , "Valencia derby", NA))))) %>% 
+  ungroup() %>% group_by(Season) %>% filter(allG == max(allG))
+
+
+derby %>% 
+  hchart(type = "column", hcaes(x = Season, y = allG, group = coler)) %>% 
+  hc_yAxis(title = list(text = "average goal")) %>% 
+  hc_xAxis(title = list(text = "season")) %>% 
+  hc_title(text = "Derby goals in years", style = list(fontWeight = "bold"))
+
+```
+

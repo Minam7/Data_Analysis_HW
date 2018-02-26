@@ -38,5 +38,10 @@ champion_table <- atable %>%
 champs <- champion_table %>% 
   group_by(team) %>% summarise(championships = n())
 
-p1 = ggplot(data = champs, mapping = aes(x = team, y = championships, fill = championships)) + ggtitle("number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+p1 = ggplot(data = champs, mapping = aes(x = team, y = championships, fill = championships)) + ggtitle("Number of championships based on team") + geom_bar(stat="identity") + scale_fill_gradient(low="gold", high="darkgreen") + ylab("championship") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p1
+
+champs %>% 
+  hchart(type = "column",hcaes(x = team, y = championships, color = championships)) %>% 
+  hc_title(text = "Number of championships based on team", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_sandsignika())
