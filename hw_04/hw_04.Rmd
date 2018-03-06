@@ -1,7 +1,7 @@
 ---
 title: "Fourth Week: Hypothesis Testing"
 subtitle: "TIMSS Analysis"
-author: "student name"
+author: "Mina Moosavifar - 93106788"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
@@ -32,6 +32,25 @@ highcharter
 به دلخواه به هفت گزاره از موارد زیر پاسخ دهید.
 </p>
 
+<p dir="RTL">
+لود داده ها و کتابخانه ها)
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(highcharter)
+library(tidyr)
+
+bcg = read_rds("tims/data/bcg.rds") # school background
+bsg = read_rds("tims/data/bsg.rds") # student background
+btg = read_rds("tims/data/btm.rds") # Teacher background
+bsa = read_rds("tims/data/bsa.rds") # student result
+bst = read_rds("tims/data/bst.rds") # student-teacher linkage
+bsr = read_rds("tims/data/bsr.rds") # within-country
+tims = read_rds("tims/timss_2015.rds")
+```
+
 ***
 
 <p dir="RTL">
@@ -43,7 +62,43 @@ highcharter
 <p dir="RTL">
 ۲. والدینی که تحصیلات بیشتری دارند دارای فرزندان موفق تری می باشند.
 </p>
+<p dir="RTL">
+در این سوال برای بدست آوردن تحصیلات از ستون 
+BSGEDUP 
+استفاده می کنیم که بیشینه ی تحصیلات والدین را نشان می دهد. هم چنین برای امتیاز دانش آموز میان ستون نمرات علوم و ریاضی میانگین میگیریم. در نهایت والدین را به دو دسته ی با تحصیلات و بدون تحصیلات دسته بندی می کنیم، که در صورتی که والدین مدرک دانشگاهی و یا بیشتر از سیکل داشته باشند با تحصیلات به شمار آمده و در غیر این صورت بدون تحصیلات هستند.(البته کسانی که تحصیلات والدینشان معلوم نبوده از داده ها حذف شده اند.)
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+edu_perf <- bsg %>% select(idstud, idcntry, edu = bsdgedup, contains("bsssci"), contains("bsmmat")) %>% 
+  mutate(sci = rowMeans(.[, 4:8]), math = rowMeans(.[, 9:13])) %>% 
+  select(idstud, idcntry, edu, sci, math) %>% 
+  mutate(score = rowMeans(.[,4:5])) %>% 
+  select(idstud, idcntry, edu, score) %>% 
+  filter(edu != 6) %>% 
+  mutate(educate = ifelse(edu < 3, "Ba Tahsilat", "Bi Tahsilat"))
 
+ggplot(edu_perf,aes(x = score,fill = educate)) + geom_density(alpha= 0.4) + ggtitle("Density of score based on parents' education")
+
+non_edu <- edu_perf %>% filter(educate == "Bi Tahsilat")
+with_edu <- edu_perf %>% filter(educate == "Ba Tahsilat")
+
+hchart(density(non_edu$score), type = "area", name=list("Bi Tahsilat")) %>%
+  hc_add_series(density(with_edu$score), type = "area", name=list("Ba Tahsilat")) %>% 
+  hc_add_theme(hc_theme_flat()) %>% 
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) 
+```
+
+<p dir="RTL">
+همانطور که در نمودار می بینیم، مد نمرات دانش آموزان با تحصیلات از دانش آموزان بی تحصیلات به صورت محسوسی بیشتر است.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+t.test(non_edu$score, with_edu$score, alt = "less")
+```
+
+<p dir="RTL">
+برای مشاهده ی صحت فرض، بیشتر بودن نمره ی دانش آموزان با والدین بدون تحصیلات را از دانش آموزان با والدین با تحصیلات، تست می کنیم که همانطور که نتایج نشان می دهد، این احتمال بسیار کم بوده و در نتیجه فرض ما باطل است. <br>
+فرزندانی که والدین با تحصیلاتی دارند نمرات بهتری از فرزندانی که والدین بی تحصیلات دارند کسب می کنند.
+</p>
 ***
 
 <p dir="RTL">
