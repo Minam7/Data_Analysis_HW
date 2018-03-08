@@ -8,7 +8,7 @@ apply_geo <- bsa %>% select(country= idcntry, student= idstud, sex= itsex, conta
 
 ggplot(apply_geo, aes(x = score, fill = gender)) + geom_density(alpha= 0.4) + ggtitle("Density of geometry score based on gender") + 
   ylab("geometry apply score") + 
-  xlab("gender") + 
+  xlab("score") + 
   guides(fill=guide_legend(title="gender"))
 
 group1 <- apply_geo %>% filter(gender == "female")

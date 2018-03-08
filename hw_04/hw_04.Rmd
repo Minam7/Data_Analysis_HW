@@ -419,8 +419,19 @@ hchart(density(filter(meal_score, meal == "free breakfast and lunch for all")$sc
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 summary(aov(score ~ education, data = tchr_bg_std_perf))
+```
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+free_all <- meal_score %>% filter(meal == "free breakfast and lunch for all")
+no_all <- meal_score %>% filter(meal == "no breakfast and no lunch")
+
+t.test(free_all$score, no_all$score, alt= "two.sided")
 
 ```
+
 <p dir="RTL">
 
 </p>
@@ -441,6 +452,39 @@ summary(aov(score ~ education, data = tchr_bg_std_perf))
 
 <p dir="RTL"> 
 ۱۰. دانش آموزان ایرانی در استدلال قوی تر از کاربرد هستند.
+</p>
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+irn <- tims %>% filter(Country == "Iran, Islamic Rep. of") %>% 
+  select(score = correct_ratio_per_question, type= cognitive_domain) %>% 
+  filter(type == "Applying" | type == "Reasoning")
+
+ggplot(irn, aes(x = score, fill = type)) + geom_density(alpha= 0.4) + ggtitle("Density of score based on cognitive domain in Iran") + 
+  ylab("density") + 
+  xlab("score") + 
+  guides(fill=guide_legend(title="cognitive domain"))
+
+group1 <- irn %>% filter(type == "Applying")
+group2 <- irn %>% filter(type == "Reasoning")
+
+hchart(density(group1$score), type = "area", name=list("Applying")) %>%
+  hc_add_series(density(group2$score), type = "area", name=list("Reasoning")) %>%
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) 
+```
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+t.test(score~type, data = irn, alt = 'greater')
+
+```
+<p dir="RTL">
+
 </p>
 
 ***

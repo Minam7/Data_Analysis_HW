@@ -43,3 +43,8 @@ hchart(density(filter(meal_score, meal == "free breakfast and lunch for all")$sc
   hc_title(text = "Density of score based on teacher education", style = list(fontWeight = "bold"))
 
 summary(aov(score ~ education, data = tchr_bg_std_perf))
+
+free_all <- meal_score %>% filter(meal == "free breakfast and lunch for all")
+no_all <- meal_score %>% filter(meal == "no breakfast and no lunch")
+
+t.test(free_all$score, no_all$score, alt= "two.sided")
