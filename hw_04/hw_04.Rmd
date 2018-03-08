@@ -99,12 +99,98 @@ t.test(non_edu$score, with_edu$score, alt = "less")
 برای مشاهده ی صحت فرض، بیشتر بودن نمره ی دانش آموزان با والدین بدون تحصیلات را از دانش آموزان با والدین با تحصیلات، تست می کنیم که همانطور که نتایج نشان می دهد، این احتمال بسیار کم بوده و در نتیجه فرض ما باطل است. <br>
 فرزندانی که والدین با تحصیلاتی دارند نمرات بهتری از فرزندانی که والدین بی تحصیلات دارند کسب می کنند.
 </p>
+
 ***
 
 <p dir="RTL">
 ۳. امکانات رفاهی در خانه موجب پیشرفت تحصیلی می گردد.
 </p>
+<p dir="RTL">
+برای حل این سوال از داده ی 
+BSDG06S
+در
+bsg 
+استفاده می کنیم که داشتن اینترنت و اتاق شخصی را نشان می دهد. سپس برای بدست آوردن امتیاز دانش آموز میان ستون های نمرات علوم و ریاضی میانگین میگیریم. در نهایت در صورتی که دانش آموز یکی از موارد اتاق یا اینترنت را داشت او را با منابع تعریف کرده و در غیر این صورت بدون منابع تعریف می کنیم.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+edu_resources <- bsg %>% select(idstud, idcntry, std_rsc = bsdg06s, contains("bsssci"), contains("bsmmat"), edu_rsc = bsdgher) %>% 
+  mutate(score = rowMeans(.[, 4:13])) %>% 
+  select(idstud, idcntry, std_rsc, edu_rsc, score) %>% 
+  mutate(study_resource = ifelse(std_rsc < 1, "No Resource", "With Resource")) %>% 
+  select(idstud, idcntry, study_resource, edu_resource=edu_rsc, score) %>% 
+  filter(!is.na(study_resource)) %>% 
+  filter(!is.na(edu_resource))
 
+
+edu_resources %>% ggplot(mapping = aes(study_resource, score, fill = study_resource)) +
+  geom_boxplot(notch=FALSE) +
+  ylab("score") +
+  xlab("resource") +
+  ggtitle("Density of score based on home resources") +
+  guides(fill=guide_legend(title="home resources"))
+
+no_resource <- edu_resources %>% filter(study_resource == "No Resource")
+with_resource <- edu_resources %>% filter(study_resource == "With Resource")
+
+
+hchart(density(no_resource$score), type = "area", name=list("No Resource")) %>%
+  hc_add_series(density(with_resource$score), type = "area", name=list("With Resource")) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on home resources", style = list(fontWeight = "bold"))
+```
+<p dir="RTL">
+همانطور که در نمودار می بینیم، مد داده های دانش آموزان با منابع بیشتر از دانش آموزان بدون منابع است. در نتیجه انتظار داریم که منابع در نمره ی دانش آموزان تاثیر داشته باشند.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+t.test(no_resource$score, with_resource$score, alt = "less")
+```
+<p dir="RTL">
+برای مشاهده ی صحت فرض، احتمال بیشتر بودن نمره ی دانش آموز بدون منابع را از دانش آموز با منابع تست می کنیم. همانطور که نتیجه نشان می دهد این احتمال بسیار پایین است، پس فرض رد می شود و منابع در امتیاز دانش آموز تاثیر گذار است.
+</p>
+
+<p dir="RTL">
+برای حل این سوال از داده ی 
+BSDGHER
+در
+bsg 
+استفاده می کنیم که داشتن اینترنت و اتاق شخصی را نشان می دهد. سپس برای بدست آوردن امتیاز دانش آموز میان ستون های نمرات علوم و ریاضی میانگین میگیریم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# other data with anova
+edu_resources <- edu_resources %>% mutate(edu_stuff = ifelse(edu_resource == 1, "Many Resources", ifelse(edu_resource == 2, "Some Resources", "Few Resources")))
+edu_resources %>% ggplot(mapping = aes(edu_stuff, score, fill = edu_stuff)) +
+  geom_boxplot(notch=FALSE) +
+  ylab("score") +
+  xlab("resource") +
+  ggtitle("Density of score based on home resources") +
+  guides(fill=guide_legend(title="home resources")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+few_resource <- edu_resources %>% filter(edu_resource == 3)
+some_resource <- edu_resources %>% filter(edu_resource == 2)
+many_resource <- edu_resources %>% filter(edu_resource == 1)
+
+hchart(density(few_resource$score), name=list("Few Resources")) %>%
+  hc_add_series(density(some_resource$score), name=list("Some Resources")) %>% 
+  hc_add_series(density(many_resource$score), name=list("Many Resources")) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on home resources", style = list(fontWeight = "bold"))
+```
+<p dir="RTL">
+همانطور که در نمودار دیده می شود، مد نمرات دانش آموزان با منابع بسیار از دانش آموزان با منابع متوسط بیشتر بوده و هر دو این نمرات از نمرات دانش آموزان با منابع کم بیشتر بوده اند. پس انتظار داریم که منابع تاثیر داشته باشد.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+summary(aov(score ~ edu_resource, data = edu_resources))
+
+```
+<p dir="RTL">
+برای تست صحت فرض، برابر بودن امتیاز دانش آموزان هر سه دسته را تست می کنیم، که همانطور که نتایج نشان می دهد، احتمال بسیار کم بوده. پس منابع در نمرات دانش آموزان تاثیر دارد.
+</p>
 ***
 
 <p dir="RTL">
@@ -115,6 +201,71 @@ t.test(non_edu$score, with_edu$score, alt = "less")
 
 <p dir="RTL">
 ۵. معلمان با تحصیلات  بالاتر یا تجربه بیشتر دانش آموزان موفق تری تربیت می کنند.
+</p>
+<p dir="RTL">
+
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+tchr_std_perf <- bst %>% select(country= idcntry, teacher= idteach, student= idstud, contains("bsssci"), contains("bsmmat"), school= idschool) %>% 
+  mutate(score = rowMeans(.[, 4:13])) %>% 
+  select(country, teacher, student, school, score) %>% 
+  filter(!is.na(country) & !is.na(teacher) & !is.na(student) & !is.na(school) & !is.na(score))
+
+tchr_bg <- btg %>% select(country= idcntry, teacher= idteach, school= idschool, edu= btbg04) %>% 
+  filter(!is.na(country) & !is.na(teacher) & !is.na(school) & !is.na(edu))
+
+tchr_bg_std_perf <- tchr_std_perf %>% inner_join(tchr_bg, by= c("country", "teacher", "school"))
+
+group1 <- tchr_bg_std_perf %>% filter(edu == 1)
+group2 <- tchr_bg_std_perf %>% filter(edu == 2)
+group3 <- tchr_bg_std_perf %>% filter(edu == 3)
+group4 <- tchr_bg_std_perf %>% filter(edu == 4)
+group5 <- tchr_bg_std_perf %>% filter(edu == 5)
+group6 <- tchr_bg_std_perf %>% filter(edu == 6)
+group7 <- tchr_bg_std_perf %>% filter(edu == 7)
+
+tchr_bg_std_perf <- tchr_bg_std_perf %>% 
+  mutate(education = ifelse(edu == 1, "Did not complete Upper secondary",
+                ifelse(edu == 2, "Upper secondary",
+                       ifelse(edu == 3, "Post-secondary, non-tertiary",
+                              ifelse(edu == 4, "Short-cycle tertiary",
+                                     ifelse(edu == 5, "Bachelor’s or equivalent",
+                                            ifelse(edu == 6, "Master’s or equivalent",
+                                                   ifelse(edu == 7, "Doctor or equivalent", NA)))))))) %>% 
+  select(country, teacher, student, school, score, education) %>% 
+  filter(!is.na(education))
+
+tchr_bg_std_perf %>% ggplot(mapping = aes(education, score, fill = education)) +
+  geom_boxplot(notch=FALSE) +
+  ylab("score") +
+  xlab("teacher education") +
+  ggtitle("Density of score based on teacher education") +
+  guides(fill=guide_legend(title="teacher education")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+hchart(density(group1$score), name=list("Did not complete Upper secondary")) %>%
+  hc_add_series(density(group2$score), name=list("Upper secondary")) %>% 
+  hc_add_series(density(group3$score), name=list("Post-secondary, non-tertiary")) %>% 
+  hc_add_series(density(group4$score), name=list("Short-cycle tertiary")) %>% 
+  hc_add_series(density(group5$score), name=list("Bachelor’s or equivalent")) %>% 
+  hc_add_series(density(group6$score), name=list("Master’s or equivalent")) %>% 
+  hc_add_series(density(group7$score), name=list("Doctor or equivalent")) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on teacher education", style = list(fontWeight = "bold"))
+```
+<p dir="RTL">
+
+</p>
+
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+summary(aov(score ~ education, data = tchr_bg_std_perf))
+```
+<p dir="RTL">
+
 </p>
 
 ***
