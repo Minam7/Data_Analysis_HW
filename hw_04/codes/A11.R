@@ -1,4 +1,4 @@
-#1.
+#1
 # lonely students effect their score
 lone <- bsg %>% select(student = idstud, country = idcntry, left= bsbg16b, contains("bsssci"), contains("bsmmat")) %>% 
   mutate(score = rowMeans(.[, 4:13])) %>% 
@@ -19,7 +19,7 @@ hchart(density(group1$score), type = "area", name=list("alone")) %>%
   hc_yAxis(title = list(text = "density")) %>% 
   hc_xAxis(title = list(text = "score")) %>% 
   hc_title(text = "Density of score based on loneliness", style = list(fontWeight = "bold")) %>% 
-  hc_add_theme(hc_theme_db())
+  hc_add_theme(hc_theme_google())
 
 t.test(score~alone, data = lone, alt="greater")
 
@@ -56,3 +56,29 @@ summary(aov(score ~ discussion, data = discus_res))
 discus_all <- discus_res %>% filter(discussion == "Every or almost every lesson")
 discuss_no <- discus_res %>% filter(discussion == "Never")
 t.test(discus_all$score, discuss_no$score, alt= "less")
+
+#3
+# cellphone worsen students performance
+
+std_edu <- bsg %>% select(student= idstud, country= idcntry, cell= bsbg06f , contains("bsssci"), contains("bsmmat")) %>% 
+  mutate(score = rowMeans(.[, 4:13])) %>% 
+  filter(cell < 3) %>% 
+  filter(!is.na(country) & !is.na(student)) %>% 
+  mutate(cellphone= ifelse(cell == 1, "yes", "no")) %>% 
+  select(student, country, cellphone, score)
+
+std_edu %>% ggplot(mapping = aes(cellphone, score, fill = cellphone)) +
+  geom_boxplot(notch=FALSE) +
+  ylab("score") +
+  xlab("having cellphone") +
+  ggtitle("Density of score based on cellphone possesion") +
+  guides(fill=guide_legend(title="cellphone possesion"))
+
+
+hchart(density(filter(std_edu, cellphone == "yes")$score), name=list("yes")) %>%
+  hc_add_series(density(filter(std_edu, cellphone == "no")$score), name=list("no")) %>% 
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on cellphone possesion", style = list(fontWeight = "bold"))
+
+t.test(score~cellphone, data= std_edu, alt="less")
