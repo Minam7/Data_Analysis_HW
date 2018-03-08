@@ -56,6 +56,55 @@ tims = read_rds("tims/timss_2015.rds")
 <p dir="RTL">
 ۱. میران رضایت معلمان در پیشرفت تحصیلی دانش آموزان موثر است.
 </p>
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+tchr_std_perf <- bst %>% select(country= idcntry, teacher= idteach, student= idstud, contains("bsssci"), contains("bsmmat")) %>% 
+  mutate(score = rowMeans(.[, 4:13])) %>% 
+  select(country, teacher, student, score) %>% 
+  filter(!is.na(country) & !is.na(teacher) & !is.na(student) & !is.na(score))
+
+tchr_sat <-  btg %>% select(country= idcntry, teacher= idteach, sat=btdgtjs) %>% 
+  filter(!is.na(country) & !is.na(teacher) & !is.na(sat))
+
+tchr_sat_std_perf <- tchr_std_perf %>% inner_join(tchr_sat, by= c("country", "teacher")) %>% 
+  mutate(satisfaction = ifelse(sat == 1, "Very Satisfied",
+                ifelse(sat == 2, "Satisfied",
+                       ifelse(sat == 3, "Less than Satisfied", NA)))) %>% 
+  select(country, teacher, score, satisfaction)
+
+tchr_sat_std_perf %>% ggplot(mapping = aes(satisfaction, score, fill = satisfaction)) +
+  geom_boxplot(notch=FALSE) +
+  ylab("score") +
+  xlab("teacher satisfaction") +
+  ggtitle("Density of score based on teacher satisfaction") +
+  guides(fill=guide_legend(title="teacher satisfaction"))
+
+group1 <- tchr_sat_std_perf %>% filter(satisfaction == "Very Satisfied")
+group2 <- tchr_sat_std_perf %>% filter(satisfaction == "Satisfied")
+group3 <- tchr_sat_std_perf %>% filter(satisfaction == "Less than Satisfied")
+
+hchart(density(group1$score), name=list("Very Satisfied")) %>%
+  hc_add_series(density(group2$score), name=list("Satisfied")) %>% 
+  hc_add_series(density(group3$score), name=list("Less than Satisfied")) %>% 
+  hc_add_theme(hc_theme_google()) %>% 
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on teacher satisfaction", style = list(fontWeight = "bold"))
+```
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+summary(aov(score ~ satisfaction, data = tchr_sat_std_perf))
+
+```
+<p dir="RTL">
+
+</p>
 
 ***
 
@@ -273,11 +322,107 @@ summary(aov(score ~ education, data = tchr_bg_std_perf))
 <p dir="RTL"> 
 ۶. پسران در کاربرد هندسه قوی تر هستند.
 </p>
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+apply_geo <- bsa %>% select(country= idcntry, student= idstud, sex= itsex, contains("bsmgeo")) %>% 
+  mutate(score = rowMeans(.[, 4:8])) %>% 
+  mutate(gender = ifelse(sex == 1, "female",
+                         ifelse(sex == 2, "male", NA))) %>% 
+  select(country, student, gender, score) %>% 
+  filter(!is.na(country) & !is.na(student) & !is.na(gender) & !is.na(score))
+
+
+ggplot(apply_geo, aes(x = score, fill = gender)) + geom_density(alpha= 0.4) + ggtitle("Density of geometry score based on gender") + 
+  ylab("geometry apply score") + 
+  xlab("gender") + 
+  guides(fill=guide_legend(title="gender"))
+
+group1 <- apply_geo %>% filter(gender == "female")
+group2 <- apply_geo %>% filter(gender == "male")
+
+hchart(density(group1$score), type = "area", name=list("female")) %>%
+  hc_add_series(density(group2$score), type = "area", name=list("male")) %>%
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) 
+```
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+t.test(score~gender, data = apply_geo, alt = 'greater')
+```
+<p dir="RTL">
+
+</p>
 
 ***
 
 <p dir="RTL"> 
 ۷. تغذیه دانش آموزان نقش اساسی در یادگیری آنها دارد. 
+</p>
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+schl_meal <- bcg %>% select(country= idcntry, school= idschool, contains("bcbg06")) %>% 
+  filter(!is.na(country) & !is.na(school) & !is.na(bcbg06a) & !is.na(bcbg06b)) %>% 
+  mutate(meal = ifelse(bcbg06a == 1 & bcbg06b == 1, "free breakfast and lunch for all",
+                       ifelse(bcbg06a == 1 & bcbg06b == 2, "free breakfast for all but free lunch for some",
+                              ifelse(bcbg06a == 1 & bcbg06b == 3, "free breakfast for all but no lunch",
+                                     ifelse(bcbg06a == 2 & bcbg06b == 1, "free breakfast for some but free lunch for all",
+                                            ifelse(bcbg06a == 2 & bcbg06b == 2, "free breakfast and lunch for some",
+                                                   ifelse(bcbg06a == 2 & bcbg06b == 3, "free breakfast for some but no lunch",
+                                                          ifelse(bcbg06a == 3 & bcbg06b == 1, "no breakfast but free lunch for all",
+                                                                 ifelse(bcbg06a == 3 & bcbg06b == 2, "no breakfast but free lunch for some",
+                                                                        ifelse(bcbg06a == 3 & bcbg06b == 3, "no breakfast and no lunch", NA)))))))))) %>% 
+  filter(!is.na(meal)) %>% 
+  select(country, school, meal)
+
+schl_score <- bsg %>% select(country= idcntry, school=idschool, student= idstud, contains("bsssci"), contains("bsmmat")) %>% 
+  mutate(score = rowMeans(.[, 4:13])) %>% 
+  select(country, school, student, score)
+
+meal_score <- schl_score %>% full_join(schl_meal, by = c("country", "school")) %>% 
+  filter(!is.na(country) & !is.na(school) & !is.na(score) & !is.na(meal))
+
+meal_score %>% ggplot(mapping = aes(meal, score, fill = meal)) +
+  geom_boxplot(notch=FALSE) +
+  ylab("score") +
+  xlab("meal") +
+  ggtitle("Density of score based on school meal") +
+  guides(fill=guide_legend(title="school meal")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+hchart(density(filter(meal_score, meal == "free breakfast and lunch for all")$score), name=list("free breakfast and lunch for all")) %>%
+  hc_add_series(density(filter(meal_score, meal == "free breakfast for all but free lunch for some")$score), name=list("free breakfast for all but free lunch for some")) %>% 
+  hc_add_series(density(filter(meal_score, meal == "free breakfast for all but no lunch")$score), name=list("free breakfast for all but no lunch")) %>% 
+  hc_add_series(density(filter(meal_score, meal == "free breakfast for some but free lunch for all")$score), name=list("free breakfast for some but free lunch for all")) %>% 
+  hc_add_series(density(filter(meal_score, meal == "free breakfast and lunch for some")$score), name=list("free breakfast and lunch for some")) %>% 
+  hc_add_series(density(filter(meal_score, meal == "free breakfast for some but no lunch")$score), name=list("free breakfast for some but no lunch")) %>% 
+  hc_add_series(density(filter(meal_score, meal == "no breakfast but free lunch for all")$score), name=list("no breakfast but free lunch for all")) %>% 
+  hc_add_series(density(filter(meal_score, meal == "no breakfast but free lunch for some")$score), name=list("no breakfast but free lunch for some")) %>% 
+  hc_add_series(density(filter(meal_score, meal == "no breakfast and no lunch")$score), name=list("no breakfast and no lunch")) %>% 
+  hc_add_theme(hc_theme_flat()) %>% 
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on teacher education", style = list(fontWeight = "bold"))
+```
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+summary(aov(score ~ education, data = tchr_bg_std_perf))
+
+```
+<p dir="RTL">
+
 </p>
 
 ***
