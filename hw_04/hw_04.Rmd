@@ -525,7 +525,7 @@ hchart(density(group1$score), type = "area", name=list("alone")) %>%
   hc_yAxis(title = list(text = "density")) %>% 
   hc_xAxis(title = list(text = "score")) %>% 
   hc_title(text = "Density of score based on loneliness", style = list(fontWeight = "bold")) %>% 
-  hc_add_theme(hc_theme_db())
+  hc_add_theme(hc_theme_google())
 ```
 <p dir="RTL">
 
