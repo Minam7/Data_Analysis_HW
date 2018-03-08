@@ -57,7 +57,12 @@ tims = read_rds("tims/timss_2015.rds")
 ۱. میران رضایت معلمان در پیشرفت تحصیلی دانش آموزان موثر است.
 </p>
 <p dir="RTL">
-
+برای این سوال برای بدست آوردن رضایت معلمان از ستون
+BTDGTJS
+در داده ی
+btm 
+استفاده می کنیم. هم چنین برای امتیاز دانش آموز میان ستون نمرات علوم و ریاضی میانگین میگیریم. در نهایت این دو داده را بر اساس کشور و شناسه ی معلم join 
+می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -95,7 +100,7 @@ hchart(density(group1$score), name=list("Very Satisfied")) %>%
   hc_title(text = "Density of score based on teacher satisfaction", style = list(fontWeight = "bold"))
 ```
 <p dir="RTL">
-
+همانطور که در نمودار مشاهده می کنیم، میانه ی داده ها با هم تفاوت دارد و در نتیجه رضایت معلم بر روی نتایج دانش آموزان بی تاثیر نیست. هم چنین نمودار نشان می دهد که معلمانی که رضایت دارند از معلمان بدون رضایت نتایج بهتری می گیرند اما معلمانی که رضایت بسیار زیادی دارند از این معلمان نتیجه ی بدتری را کسب می کنند.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -103,7 +108,9 @@ summary(aov(score ~ satisfaction, data = tchr_sat_std_perf))
 
 ```
 <p dir="RTL">
-
+برای مشاهده ی صحت فرض، مساوی بودن هر سه دسته رضایت معلم را با
+ANOVA 
+تست می کنیم که نتایج نشان می دهد، عملکرد دانش آموزان در هر سه یکی نیست و رضایت معلم در پیشرفت دانش آموزان موثر است.
 </p>
 
 ***
@@ -240,6 +247,7 @@ summary(aov(score ~ edu_resource, data = edu_resources))
 <p dir="RTL">
 برای تست صحت فرض، برابر بودن امتیاز دانش آموزان هر سه دسته را تست می کنیم، که همانطور که نتایج نشان می دهد، احتمال بسیار کم بوده. پس منابع در نمرات دانش آموزان تاثیر دارد.
 </p>
+
 ***
 
 <p dir="RTL">
@@ -252,7 +260,13 @@ summary(aov(score ~ edu_resource, data = edu_resources))
 ۵. معلمان با تحصیلات  بالاتر یا تجربه بیشتر دانش آموزان موفق تری تربیت می کنند.
 </p>
 <p dir="RTL">
-
+برای حل این سوال برای بدست آوردن تحصیلات معلمان از ستون
+BTBG04 
+در داده ی 
+btm 
+استفاده می کنیم که میزان تحصیلات معلم را در چند دسته نمایش می دهد. سپس برای بدست آوردن امتیاز دانش آموز میان ستون های نمرات علوم و ریاضی میانگین میگیریم. در نهایت این دو جدول را از روی کشور و شناسه ی معلم
+join 
+می کنیم.
 </p>
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 tchr_std_perf <- bst %>% select(country= idcntry, teacher= idteach, student= idstud, contains("bsssci"), contains("bsmmat"), school= idschool) %>% 
@@ -306,15 +320,17 @@ hchart(density(group1$score), name=list("Did not complete Upper secondary")) %>%
   hc_title(text = "Density of score based on teacher education", style = list(fontWeight = "bold"))
 ```
 <p dir="RTL">
-
+همانطور که نمودارها نشان می دهند، تحصیلات معلم تاثیر گذار است و هرچه تحصیلات معلم بیشتر باشد، نتایج دانش آموزان بهتر می شود.
 </p>
-
-
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 summary(aov(score ~ education, data = tchr_bg_std_perf))
+t.test(group7$score, group1$score, alt="greater")
+
 ```
 <p dir="RTL">
-
+برای تست صحت فرض، برابر بودن امتیاز دانش آموزان هر دسته را با
+ANOVA 
+تست می کنیم، همانطور که نتایج نشان می دهد، احتمال بسیار کم بوده، پس تحصیلات معلم در نتایج تاثیر گذار است. همچنین تست دوم نشان می دهد که معلمان با تحصیلات بیشتر نتایج بهتری میگیرند.(در واقع احتمال اینکه دانش آموز با معلم با تحصیلات بدتر نتایج بهتری بگیرند بسیار کم است)
 </p>
 
 ***
@@ -323,7 +339,11 @@ summary(aov(score ~ education, data = tchr_bg_std_perf))
 ۶. پسران در کاربرد هندسه قوی تر هستند.
 </p>
 <p dir="RTL">
-
+برای حل این سوال برای بدست آوردن هندسه میان ستون های
+BSMGEO
+در داده ی
+bsa 
+میانگین میگیریم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -351,14 +371,16 @@ hchart(density(group1$score), type = "area", name=list("female")) %>%
   hc_title(text = "Density of geometry score based on gender", style = list(fontWeight = "bold"))
 ```
 <p dir="RTL">
-
+همانطور که در نمودار میبینیم، دو دسته تفاوت زیادی ندارند.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 t.test(score~gender, data = apply_geo, alt = 'greater')
 ```
 <p dir="RTL">
-
+برای صحت فرض، احتمال بیشتر بودن نمرات پسران از دختران را به کمک
+t.test 
+تست می کنیم که همانطور که نشان می دهد، احتمال بسیار کم بوده و عملکرد هندسه ی پسران از دختران بهتر نیست.
 </p>
 
 ***
@@ -367,7 +389,13 @@ t.test(score~gender, data = apply_geo, alt = 'greater')
 ۷. تغذیه دانش آموزان نقش اساسی در یادگیری آنها دارد. 
 </p>
 <p dir="RTL">
-
+برای حل این سوال از ستون های 
+BCBG06a 
+و 
+BCBG06b 
+را از داده ی
+bcg 
+استفاده می کنیم که مجانی بودن ناهار یا صبحانه را از طرف مدرسه نشان می دهد. در نهایت غذای مدرسه را به ۹ گروه مجانی برای همه، مجانی برای عده ای و غیرمجانی تقسیم می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -413,17 +441,19 @@ hchart(density(filter(meal_score, meal == "free breakfast and lunch for all")$sc
   hc_add_theme(hc_theme_flat()) %>% 
   hc_yAxis(title = list(text = "density")) %>% 
   hc_xAxis(title = list(text = "score")) %>% 
-  hc_title(text = "Density of score based on teacher education", style = list(fontWeight = "bold"))
+  hc_title(text = "Density of score based on school meal", style = list(fontWeight = "bold"))
 ```
 <p dir="RTL">
-
+همانطور که در نمودار می بینیم، تغذیه تاثیر بر روی نتایج دارد، اما نتایج معنی داری وجود ندارد. برای مثال کمترین امتیاز را دانش آموزان با تغذیه مجانی دریافت می کنند و یا بیشترین امتیاز را دانش آموزان بدون صبحانه مجانی و غذای مجانی برای عده ای گرفته اند. البته می بینیم که دانش آموزان با ناهار نتایج بهتری را کسب می کنند.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 summary(aov(score ~ education, data = tchr_bg_std_perf))
 ```
 <p dir="RTL">
-
+برای تست صحت فرض، بدون تاثیر بودن تغذیه در نتایج دانش آموزان را تست می کنیم. برای این منظور برابر بودن امتیازات نه دسته را با
+ANOVA 
+بررسی می کنیم. نتیجه نشان می دهد که تغذیه در نتایج بی تاثیر نیست و تاثیر دارد.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -435,7 +465,7 @@ t.test(free_all$score, no_all$score, alt= "two.sided")
 ```
 
 <p dir="RTL">
-
+هم چنین در تست بالا تست می کنیم که دانش آموزان بدون تغذیه با دانش آموزان با تغذیه نتایج یکسانی کسب می کنند که نشان می دهد که این موضوع منتفی است.
 </p>
 
 ***
@@ -456,7 +486,9 @@ t.test(free_all$score, no_all$score, alt= "two.sided")
 ۱۰. دانش آموزان ایرانی در استدلال قوی تر از کاربرد هستند.
 </p>
 <p dir="RTL">
-
+برای حل این سوال از داده ی
+tims 
+استفاده می کنیم، که کشور ایران را انتخاب کرده و درصد درستی سوال و دو نوع سوال استدلالی و کاربرد را انتخاب می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -480,7 +512,7 @@ hchart(density(group1$score), type = "area", name=list("Applying")) %>%
 
 ```
 <p dir="RTL">
-
+همانطور که در نمودار می بینیم میانه ی نمرات سوالات کاربرد از نمرات سوالات استدلالی بیشتر است.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -488,7 +520,7 @@ t.test(score~type, data = irn, alt = 'greater')
 
 ```
 <p dir="RTL">
-
+برای تست صحت فرض، احتمال بیشتر بودن نمره ی سوالات استدلالی را تست می کنیم، که نتیجه نشان می دهد این احتمال بسیار پایین بوده و دانش آموزان در استدلال بهتر از کاربرد عمل نمی کنند.
 </p>
 
 ***
@@ -500,7 +532,11 @@ t.test(score~type, data = irn, alt = 'greater')
 ۱.دانش آموزانی که در بازی ها تنها می مانند، نتایج بدتری کسب می کنند.
 </p>
 <p dir="RTL">
-
+برای حل این سوال، برای نمایش از بازی جا ماندن از ستون
+BSBG16B 
+در داده ی
+bsg 
+استفاده می کنیم که تعدد بازماندن دانش آموز از بازی را نشان می دهد. در صورتی که دانش آموز بیشتر از چند بار در سال بازبماند او را تنها به شمار آورده و در غیر این صورت تنها تلقی نمی کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -528,7 +564,7 @@ hchart(density(group1$score), type = "area", name=list("alone")) %>%
   hc_add_theme(hc_theme_google())
 ```
 <p dir="RTL">
-
+همانطور که در نمودار می بینیم دانش آموزانی که بیشتر تنها می مانند، نمرات کمتری را از دسته ی دیگر کسب می کنند.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -536,7 +572,9 @@ t.test(score~alone, data = lone, alt="greater")
 
 ```
 <p dir="RTL">
-
+برای تست صحت فرض، بیشتر بودن نمره ی دانش آموزان تنها را از دانش آموزان غیرتنها با
+t.test 
+تست می کنیم که نتیجه نشان می دهد که عملکرد دانش آموزان تنها از دانش آموزان غیرتنها بهتر نیست.
 </p>
 
 ***
@@ -544,7 +582,11 @@ t.test(score~alone, data = lone, alt="greater")
 ۲. بحث کلاسی بیشتر باعث بهبود نتایج دانش آموزان است.
 </p>
 <p dir="RTL">
-
+برای حل این سوال از ستون
+BTBG14D 
+در داده ی 
+btm 
+استفاده می کنیم که میزان بحث کلاسی را نشان می دهد.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -577,7 +619,7 @@ hchart(density(filter(discus_res, discussion == "Every or almost every lesson")$
   hc_title(text = "Density of score based on class discussion", style = list(fontWeight = "bold"))
 ```
 <p dir="RTL">
-
+همانطور که در نمودار می بینیم، تاثیر بحث کلاسی تا جایی خوب است و بیشتر از آن آثار مخربی می گذارد.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -588,7 +630,9 @@ discuss_no <- discus_res %>% filter(discussion == "Never")
 t.test(discus_all$score, discuss_no$score, alt= "less")
 ```
 <p dir="RTL">
-
+برای تست صحت فرض، احتمال بهتر بودن نتایج دانش آموزان با بیشترین بحث کلاسی را از نتایج دانش آموزان بدون بحث کلاسی را به کمک
+t.test 
+تست می کنیم. نتیجه نشان می دهد که این احتمال بسیار کم بوده و بحث کلاسی بیشتر باعث بهبود نتایج نمی شود.
 </p>
 
 ***
@@ -596,7 +640,11 @@ t.test(discus_all$score, discuss_no$score, alt= "less")
 ۳. گوشی موبایل باعث تضعیف نمرات دانش آموزان می شود.
 </p>
 <p dir="RTL">
-
+برای حل این سوال از ستون
+BSBG06F 
+از داده ی
+bsg 
+استفاده می کنیم که داشتن تلفن همراه را تست می کند.
 </p>
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 #3
@@ -624,13 +672,12 @@ hchart(density(filter(std_edu, cellphone == "yes")$score), name=list("yes")) %>%
   hc_title(text = "Density of score based on cellphone possesion", style = list(fontWeight = "bold"))
 ```
 <p dir="RTL">
-
+همانطور که در نمودار می بینیم، دانش آموزان با تلفن همراه نمرات بهتری را نیز کسب کرده اند.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 t.test(score~cellphone, data= std_edu, alt="less")
 ```
 <p dir="RTL">
-
+برای تست صحت فرض، احتمال کمتر بودن نمره ی دانش آموز با موبایل را از دانش آموزا بدون موبایل تست می کنیم که بسیار پایین است، پس داشتن تلفن همراه باعث تضعیف نمرات دانش آموزان نمی شود.
 </p>
-

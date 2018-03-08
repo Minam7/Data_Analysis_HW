@@ -49,4 +49,4 @@ hchart(density(group1$score), name=list("Did not complete Upper secondary")) %>%
   hc_title(text = "Density of score based on teacher education", style = list(fontWeight = "bold"))
 
 summary(aov(score ~ education, data = tchr_bg_std_perf))
-
+t.test(group7$score, group1$score, alt="greater")
