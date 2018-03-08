@@ -29,6 +29,7 @@ hchart(density(non_edu$score), type = "area", name=list("Bi Tahsilat")) %>%
   hc_add_series(density(with_edu$score), type = "area", name=list("Ba Tahsilat")) %>% 
   hc_add_theme(hc_theme_flat()) %>% 
   hc_yAxis(title = list(text = "density")) %>% 
-  hc_xAxis(title = list(text = "score")) 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on parents' education", style = list(fontWeight = "bold"))
 
 t.test(non_edu$score, with_edu$score, alt = "less")

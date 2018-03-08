@@ -346,7 +346,9 @@ group2 <- apply_geo %>% filter(gender == "male")
 hchart(density(group1$score), type = "area", name=list("female")) %>%
   hc_add_series(density(group2$score), type = "area", name=list("male")) %>%
   hc_yAxis(title = list(text = "density")) %>% 
-  hc_xAxis(title = list(text = "score")) 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_add_theme(hc_theme_db()) %>% 
+  hc_title(text = "Density of geometry score based on gender", style = list(fontWeight = "bold"))
 ```
 <p dir="RTL">
 
@@ -473,7 +475,9 @@ group2 <- irn %>% filter(type == "Reasoning")
 hchart(density(group1$score), type = "area", name=list("Applying")) %>%
   hc_add_series(density(group2$score), type = "area", name=list("Reasoning")) %>%
   hc_yAxis(title = list(text = "density")) %>% 
-  hc_xAxis(title = list(text = "score")) 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on cognitive domain in Iran", style = list(fontWeight = "bold"))
+
 ```
 <p dir="RTL">
 
@@ -491,4 +495,55 @@ t.test(score~type, data = irn, alt = 'greater')
 
 <p dir="RTL">
 سه گزاره جالب کشف کنید و ادعای خود را ثابت نمایید.
+</p>
+<p dir="RTL">
+۱.دانش آموزانی که در بازی ها تنها می مانند، نتایج بدتری کسب می کنند.
+</p>
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+#1.
+# lonely students effect their score
+lone <- bsg %>% select(student = idstud, country = idcntry, left= bsbg16b, contains("bsssci"), contains("bsmmat")) %>% 
+  mutate(score = rowMeans(.[, 4:13])) %>% 
+  filter(left < 5) %>% 
+  mutate(alone= ifelse(left < 3, "yes", "no")) %>% 
+  select(student, country, alone, score)
+
+ggplot(lone, aes(x = score, fill = alone)) + geom_density(alpha= 0.4) + ggtitle("Density of score based on loneliness") + 
+  ylab("density") + 
+  xlab("score") + 
+  guides(fill=guide_legend(title="lonely"))
+
+group1 <- lone %>% filter(alone == "yes")
+group2 <- lone %>% filter(alone == "no")
+
+hchart(density(group1$score), type = "area", name=list("alone")) %>%
+  hc_add_series(density(group2$score), type = "area", name=list("not alone")) %>%
+  hc_yAxis(title = list(text = "density")) %>% 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on loneliness", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_db())
+```
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+t.test(score~alone, data = lone, alt="greater")
+
+```
+<p dir="RTL">
+
+</p>
+
+***
+<p dir="RTL">
+
+</p>
+***
+<p dir="RTL">
+
 </p>

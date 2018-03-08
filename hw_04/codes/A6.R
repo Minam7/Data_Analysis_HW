@@ -17,7 +17,9 @@ group2 <- apply_geo %>% filter(gender == "male")
 hchart(density(group1$score), type = "area", name=list("female")) %>%
   hc_add_series(density(group2$score), type = "area", name=list("male")) %>%
   hc_yAxis(title = list(text = "density")) %>% 
-  hc_xAxis(title = list(text = "score")) 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_add_theme(hc_theme_db()) %>% 
+  hc_title(text = "Density of geometry score based on gender", style = list(fontWeight = "bold"))
 
 t.test(score~gender, data = apply_geo, alt = 'greater')
 

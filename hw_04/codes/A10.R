@@ -13,6 +13,7 @@ group2 <- irn %>% filter(type == "Reasoning")
 hchart(density(group1$score), type = "area", name=list("Applying")) %>%
   hc_add_series(density(group2$score), type = "area", name=list("Reasoning")) %>%
   hc_yAxis(title = list(text = "density")) %>% 
-  hc_xAxis(title = list(text = "score")) 
+  hc_xAxis(title = list(text = "score")) %>% 
+  hc_title(text = "Density of score based on cognitive domain in Iran", style = list(fontWeight = "bold"))
 
 t.test(score~type, data = irn, alt = 'greater')
