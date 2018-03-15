@@ -34,7 +34,11 @@ library(dplyr)
 stores = c(102, 300, 102, 100, 205, 105, 71 , 92)
 chisq.test(stores)
 ```
-
+<p dir="RTL">
+برای حل این سوال، برای اندازه گیری عملکرد یکسان نمایندگی ها، از 
+chi squared goodness of fit test 
+استفاده می کنیم، که احتمال انتخاب هر نمایندگی را یکسان میگیریم، اما همانطور که نتیجه نشان می دهد، این احتمال بسیار پایین بوده و فرض صفر باطل است و عملکرد نمایندگی های مختلف یکسان نیست.
+</p>
 ***
 
 <p dir="RTL">
@@ -65,6 +69,21 @@ modern_stores = c(55, 75, 80, 90, 105, 65)
 
 wilcox.test(classic_stores, modern_stores, alternative = "two.sided", exact = FALSE, correct = FALSE)
 ```
+<p dir="RTL">
+برای حل این سوال، چون تعداد داده ها کم است، از 
+permutation test
+استفاده می کنیم و فرض می کنیم که بین دو شعبه تفاوتی وجود ندارد. اما نتیجه نشان می دهد که خروجی
+t.test 
+در داخل
+95% confidence interval 
+قرار دارد، پس نمی توانیم فرض صفر را(یکسان بودن دو شعبه) را رد کنیم. علاوه بر آن از تست
+wilcoxon rank sum test
+نیز به صورت 
+unpaired
+و
+two sided
+استفاده می کنیم که نتیجه ی این تست نیز، برابری دو شعبه را رد نمی کند، پس در مورد تفاوت دو شعبه نمی توانیم نظر دهیم.
+</p>
 ***
 
 <p dir="RTL">
@@ -97,8 +116,24 @@ all_accounts = data.frame(accounts, labels)
 
 t.test(accounts~labels, data=all_accounts, alt = 'greater', var.equal=TRUE, paired= TRUE) 
 
-coin::oneway_test(accounts~labels, data=all_accounts, alt= 'greater', distribution="exact")
+coin::oneway_test(accounts~labels, data=all_accounts, alt= 'greater', distribution="exact", paired = TRUE)
 ```
+<p dir="RTL">
+برای این سوال، ابتدا از تست
+wilcoxon signed rank test
+به صورت
+paired
+و 
+less
+استفاده می کنیم، و فرض صفر را بیشتر بودن فروش طرح قدیم در نظر می گیریم. اما همانطور که در خروجی می بینیم، این احتمال کم نبوده و فرض صفر را رد نمی کند.
+علاوه بر آن نیز از
+permutation test
+نیز استفاده می کنیم و فرض صفر را بیشتر بودن فروش در طرح قدیم در نظر میگیریم. حال در این روش می بینیم که نتیجه ی 
+t.test
+در خارج از 
+confidence interval 
+قرار گرفته است و فرض بهتر بودن حالت قدیم رد شده است و فروش طرح جدید از قدیم بهتر شده است.
+</p>
 ***
 
 <p dir="RTL">
@@ -125,9 +160,12 @@ color_data = data.frame(store_num, price, color)
 
 kruskal.test(color ~ price, data = color_data)
 
-color_matrix = data.matrix(color_data)
-friedman.test(color_matrix)
 ```
+<p dir="RTL">
+برای حل این سوال، ابتدا ماتریس مورد نظر سوال را ایجاد می کنیم. در نهایت چون مقادیر متنوعی وجود دارد، ابتدا تست
+kruskal
+را انتخاب می کنیم، اما همانطور که نتیجه می دهد، این احتمال بالا بوده و بی تاثیر بودن رنگ در فروش را نمی توانیم مطمئن شویم.
+</p>
 ***
 
 <p dir="RTL">
@@ -141,7 +179,13 @@ tv_matrix <- data.matrix(tv)
 friedman.test(tv_matrix)
 
 ```
-
+<p dir="RTL">
+برای حل این سوال چون در واقع هر خط یک
+repeated test
+است از تست
+friedman
+استفاده می کنیم. حال نتیجه نشان می دهد که احتمال برابر بودن ماه های مختلف، کم نیست، پس فرض صفر را نمی توانیم رد کنیم و نمی توانیم بگوییم که تبلیغات تاثیر مثبتی بر افزایش رضایت داشته است.
+</p>
 ***
 
 <p dir="RTL"> 
@@ -168,6 +212,12 @@ city_matrix <- city_data %>% .[,-1] %>% as.matrix()
 chisq.test(city_matrix)
 
 ```
+
+<p dir="RTL"> 
+برای حل این سوال چون می خواهیم استقلال جمعیت و میزان مصرف محصولات را تست کنیم از
+chi squared test of independence
+استقاده می کنیم. همانطور که مشاهده می کنیم، احتمال مستقل بودن این دو داده کم است و جمعیت شهر بر روی میزان مصرف محصولات تاثیر دارد.
+</p>
 ***
 
 <p dir="RTL"> 
@@ -182,6 +232,15 @@ wilcox.test(consumptions$A, consumptions$B, paired= TRUE)
 cor.test(consumptions$A, consumptions$B, method = 'spearman')
 
 ```
+<p dir="RTL"> 
+برای حل این سوال، چون داده ها جفت هستند از تست
+wilcoxon signed rank test
+به صورت
+paired
+استفاده می کنیم. همانطور که در نتیجه مشاهده می کنیم، احتمال تفاوت دو گروه کم است و در نتیجه بین این دو گروه ارتباط وجود دارد. علاوه بر این میزان همبستگی این دو متغیر را از طریق تست
+corelation spearman
+بدست می آوریم که همانطور که می بینیم، میزان همبستگی این دو متغیر نسبتا زیاد است.
+</p>
 ***
 
 <p dir="RTL"> 
@@ -211,3 +270,8 @@ chisq.test(product_matrix)
 
 ```
 
+<p dir="RTL"> 
+برای حل این سوال چون می خواهیم ارتباط مشخصات را تست کنیم از
+chi squared test of independence
+استفاده می کنیم که همانطور که نتیجه نشان می دهد، احتمال مستقل بودن این دو ویژگی کم است و جنسیت در مشخصه کاربری تاثیر دارد.
+</p>

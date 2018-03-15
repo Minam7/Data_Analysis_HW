@@ -71,7 +71,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1 class="title toc-ignore project-name">Fifth Week: Bootstrap and Resampling Methods</h1>
 <h3 class="subtitle project-tagline">Nonparametric Hypothesis tests</h3>
 <h4 class="author project-author">Mina Moosavifar - 93106788</h4>
-<h4 class="date project-date">2018-03-15 23:56:21</h4>
+<h4 class="date project-date">2018-03-16 00:45:16</h4>
 </section>
 
 
@@ -100,6 +100,9 @@ stores =<span class="st"> </span><span class="kw">c</span>(<span class="dv">102<
 
 data:  stores
 X-squared = 314.74, df = 7, p-value &lt; 2.2e-16</code></pre>
+<p dir="RTL">
+برای حل این سوال، برای اندازه گیری عملکرد یکسان نمایندگی ها، از chi squared goodness of fit test استفاده می کنیم، که احتمال انتخاب هر نمایندگی را یکسان میگیریم، اما همانطور که نتیجه نشان می دهد، این احتمال بسیار پایین بوده و فرض صفر باطل است و عملکرد نمایندگی های مختلف یکسان نیست.
+</p>
 <hr />
 <p dir="RTL">
 ۲. آمار فروش شرکتی در دو نوع شعبه سنتی و مدرن در زیر آمده است:
@@ -144,6 +147,9 @@ modern_stores =<span class="st"> </span><span class="kw">c</span>(<span class="d
 data:  classic_stores and modern_stores
 W = 17.5, p-value = 0.3993
 alternative hypothesis: true location shift is not equal to 0</code></pre>
+<p dir="RTL">
+برای حل این سوال، چون تعداد داده ها کم است، از permutation test استفاده می کنیم و فرض می کنیم که بین دو شعبه تفاوتی وجود ندارد. اما نتیجه نشان می دهد که خروجی t.test در داخل 95% confidence interval قرار دارد، پس نمی توانیم فرض صفر را(یکسان بودن دو شعبه) را رد کنیم. علاوه بر آن از تست wilcoxon rank sum test نیز به صورت unpaired و two sided استفاده می کنیم که نتیجه ی این تست نیز، برابری دو شعبه را رد نمی کند، پس در مورد تفاوت دو شعبه نمی توانیم نظر دهیم.
+</p>
 <hr />
 <p dir="RTL">
 ۳. اطلاعات حسابداری ۱۵ شعبه که به صورت تصادفی انتخاب شده اند به شرح زیر است:
@@ -184,13 +190,16 @@ alternative hypothesis: true difference in means is greater than 0
 sample estimates:
 mean of the differences 
                    14.4 </code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">coin<span class="op">::</span><span class="kw">oneway_test</span>(accounts<span class="op">~</span>labels, <span class="dt">data=</span>all_accounts, <span class="dt">alt=</span> <span class="st">'greater'</span>, <span class="dt">distribution=</span><span class="st">&quot;exact&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">coin<span class="op">::</span><span class="kw">oneway_test</span>(accounts<span class="op">~</span>labels, <span class="dt">data=</span>all_accounts, <span class="dt">alt=</span> <span class="st">'greater'</span>, <span class="dt">distribution=</span><span class="st">&quot;exact&quot;</span>, <span class="dt">paired =</span> <span class="ot">TRUE</span>)</code></pre></div>
 <pre><code>
     Exact Two-Sample Fisher-Pitman Permutation Test
 
 data:  accounts by labels (after, before)
 Z = 0.2915, p-value = 0.3879
 alternative hypothesis: true mu is greater than 0</code></pre>
+<p dir="RTL">
+برای این سوال، ابتدا از تست wilcoxon signed rank test به صورت paired و less استفاده می کنیم، و فرض صفر را بیشتر بودن فروش طرح قدیم در نظر می گیریم. اما همانطور که در خروجی می بینیم، این احتمال کم نبوده و فرض صفر را رد نمی کند. علاوه بر آن نیز از permutation test نیز استفاده می کنیم و فرض صفر را بیشتر بودن فروش در طرح قدیم در نظر میگیریم. حال در این روش می بینیم که نتیجه ی t.test در خارج از confidence interval قرار گرفته است و فرض بهتر بودن حالت قدیم رد شده است و فروش طرح جدید از قدیم بهتر شده است.
+</p>
 <hr />
 <p dir="RTL">
 ۴. محصولی در سه رنگ سفید آبی و قرمز تولید شده است. پنج شعبه ار فروشگاه سازنده محصول به صورت تصادفی انتخاب شده و اطلاعات فروش آنها در زیر آمده است.
@@ -251,13 +260,9 @@ color_data =<span class="st"> </span><span class="kw">data.frame</span>(store_nu
 
 data:  color by price
 Kruskal-Wallis chi-squared = 12, df = 12, p-value = 0.4457</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">color_matrix =<span class="st"> </span><span class="kw">data.matrix</span>(color_data)
-<span class="kw">friedman.test</span>(color_matrix)</code></pre></div>
-<pre><code>
-    Friedman rank sum test
-
-data:  color_matrix
-Friedman chi-squared = 21.347, df = 2, p-value = 2.315e-05</code></pre>
+<p dir="RTL">
+برای حل این سوال، ابتدا ماتریس مورد نظر سوال را ایجاد می کنیم. در نهایت چون مقادیر متنوعی وجود دارد، ابتدا تست kruskal را انتخاب می کنیم، اما همانطور که نتیجه می دهد، این احتمال بالا بوده و بی تاثیر بودن رنگ در فروش را نمی توانیم مطمئن شویم.
+</p>
 <hr />
 <p dir="RTL">
 ۵. یک موسسه نظرسنجی نظرات مردم در مورد رضایت از یک محصول که در ماه های فروردین اردیبهشت خرداد و تیر که از طریق تلویزیون تبلیغ شده است را مورد ارزیابی قرار می دهد.این کار بدین صورت است از افرادی در ماه اول سوال پرسیده می شود و در ماه آینده نیز از همان فرد سوال می شود که آیا از محصول مذکور راضی هستی یا خیر. با توجه به داده ایی که در پیوست تمرین آمده است آیا تبلیغات تاثیر مثبتی در افزایش رضایت مردم داشته است؟
@@ -270,6 +275,9 @@ tv_matrix &lt;-<span class="st"> </span><span class="kw">data.matrix</span>(tv)
 
 data:  tv_matrix
 Friedman chi-squared = 1.2, df = 3, p-value = 0.753</code></pre>
+<p dir="RTL">
+برای حل این سوال چون در واقع هر خط یک repeated test است از تست friedman استفاده می کنیم. حال نتیجه نشان می دهد که احتمال برابر بودن ماه های مختلف، کم نیست، پس فرض صفر را نمی توانیم رد کنیم و نمی توانیم بگوییم که تبلیغات تاثیر مثبتی بر افزایش رضایت داشته است.
+</p>
 <hr />
 <p dir="RTL">
 ۶. شرکتی در حال تحقیق بر روی این موضوع است که آیا جمعیت شهر تاثیری در نوع میزان مصرف محصولات شرکت دارد. با توجه به داده زیر این موضوع را تحقیق کنید؟
@@ -324,6 +332,9 @@ city_matrix &lt;-<span class="st"> </span>city_data <span class="op">%&gt;%</spa
 
 data:  city_matrix
 X-squared = 821.31, df = 4, p-value &lt; 2.2e-16</code></pre>
+<p dir="RTL">
+برای حل این سوال چون می خواهیم استقلال جمعیت و میزان مصرف محصولات را تست کنیم از chi squared test of independence استقاده می کنیم. همانطور که مشاهده می کنیم، احتمال مستقل بودن این دو داده کم است و جمعیت شهر بر روی میزان مصرف محصولات تاثیر دارد.
+</p>
 <hr />
 <p dir="RTL">
 ۷. شرکتی انتظار دارد با ارایه محصول الف میزان فروش محصول ب افزایش یابد. به همین منظور به طور تصادفی از صد مشتری خود اطلاعات مصرف جمع آوری می نماید. با توجه به داده های که داده شده آیا ربط معناداری بین فروش این دو محصول وجود دارد؟
@@ -347,6 +358,9 @@ alternative hypothesis: true rho is not equal to 0
 sample estimates:
        rho 
 0.03736654 </code></pre>
+<p dir="RTL">
+برای حل این سوال، چون داده ها جفت هستند از تست wilcoxon signed rank test به صورت paired استفاده می کنیم. همانطور که در نتیجه مشاهده می کنیم، احتمال تفاوت دو گروه کم است و در نتیجه بین این دو گروه ارتباط وجود دارد. علاوه بر این میزان همبستگی این دو متغیر را از طریق تست corelation spearman بدست می آوریم که همانطور که می بینیم، میزان همبستگی این دو متغیر نسبتا زیاد است.
+</p>
 <hr />
 <p dir="RTL">
 ۸. یک شرکت از ۲۰۰۰ نفر از مشتریان خود عامل خرید محصول را مورد سوال قرار میدهد که خلاصه اطلاعات آن را در زیر می توانید مشاهده کنید
@@ -393,6 +407,9 @@ product_matrix &lt;-<span class="st"> </span>product <span class="op">%&gt;%</sp
 
 data:  product_matrix
 X-squared = 289.71, df = 2, p-value &lt; 2.2e-16</code></pre>
+<p dir="RTL">
+برای حل این سوال چون می خواهیم ارتباط مشخصات را تست کنیم از chi squared test of independence استفاده می کنیم که همانطور که نتیجه نشان می دهد، احتمال مستقل بودن این دو ویژگی کم است و جنسیت در مشخصه کاربری تاثیر دارد.
+</p>
 </section>
 
 
