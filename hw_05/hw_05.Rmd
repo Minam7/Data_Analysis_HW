@@ -26,6 +26,14 @@ output:
 102, 300, 102, 100, 205, 105, 71 , 92.
 با توجه به داده آیا عملکرد نمایندگی ها یکسان است؟
 </p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(readr)
+library(coin)
+library(dplyr)
+
+stores = c(102, 300, 102, 100, 205, 105, 71 , 92)
+chisq.test(stores)
+```
 
 ***
 
@@ -41,7 +49,22 @@ Modern stores: 55, 75, 80, 90, 105, 65
 آیا تفاوتی در عملکرد دو نوع شعبه وجود دارد؟
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# permutation test
+stores = c(50, 50, 60, 70, 75, 80, 90, 85, 55, 75, 80, 90, 105, 65)
+labels = factor(c(rep("classic", 8), rep("modern", 6)))
+all_stores = data.frame(stores, labels)
 
+t.test(stores~labels, data=all_stores, var.equal=TRUE) 
+
+coin::oneway_test(stores~labels, data=all_stores, distribution="exact")
+
+# Wilcoxon–Mann–Whitney rank-sum test
+classic_stores = c(50, 50, 60, 70, 75, 80, 90, 85)
+modern_stores = c(55, 75, 80, 90, 105, 65)
+
+wilcox.test(classic_stores, modern_stores, alternative = "two.sided", exact = FALSE, correct = FALSE)
+```
 ***
 
 <p dir="RTL">
@@ -60,7 +83,22 @@ Modern stores: 55, 75, 80, 90, 105, 65
 <p dir="RTL">
 آیا تبلیغات جدید عملکرد فروش را بالا برده است؟
 </p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# Wilcoxon paired signed-rank test
+account_before = c(509, 517, 502, 629, 830, 911, 847, 803, 727, 853, 757, 730, 774, 718, 904)
+account_after = c(517, 508, 523, 730, 821, 940, 818, 821, 842, 842, 709, 688, 787, 780, 901)
 
+wilcox.test(account_before, account_after, alt= 'less', exact = FALSE, paired= TRUE)
+
+# permutation test
+accounts = c(509, 517, 502, 629, 830, 911, 847, 803, 727, 853, 757, 730, 774, 718, 904, 517, 508, 523, 730, 821, 940, 818, 821, 842, 842, 709, 688, 787, 780, 901)
+labels = factor(c(rep("before", 15), rep("after", 15)))
+all_accounts = data.frame(accounts, labels)
+
+t.test(accounts~labels, data=all_accounts, alt = 'greater', var.equal=TRUE, paired= TRUE) 
+
+coin::oneway_test(accounts~labels, data=all_accounts, alt= 'greater', distribution="exact")
+```
 ***
 
 <p dir="RTL">
@@ -79,7 +117,17 @@ Modern stores: 55, 75, 80, 90, 105, 65
 <p dir="RTL">
 با توجه به داده های بالا آیا رنگی خاص در میزان فروش محصولات تاثیر دارد؟
 </p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+store_num = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5)
+price = c(510, 925, 730, 720, 735, 745, 930, 753, 875, 754, 685, 610, 105)
+color = c("white", "blue", "red", "white", "blue", "red", "white", "blue", "red", "white", "blue", "red", "white")
+color_data = data.frame(store_num, price, color)
 
+kruskal.test(color ~ price, data = color_data)
+
+color_matrix = data.matrix(color_data)
+friedman.test(color_matrix)
+```
 ***
 
 <p dir="RTL">
@@ -87,7 +135,12 @@ Modern stores: 55, 75, 80, 90, 105, 65
 تبلیغ شده است را مورد ارزیابی قرار می دهد.این کار بدین صورت است از افرادی در ماه اول سوال پرسیده می شود و در ماه آینده نیز از همان فرد سوال می شود که آیا از محصول مذکور راضی هستی یا خیر.
 با توجه به داده ایی که در پیوست تمرین آمده است آیا تبلیغات تاثیر مثبتی در افزایش رضایت مردم داشته است؟
 </p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+tv = read_csv("data/tv.csv")
+tv_matrix <- data.matrix(tv)
+friedman.test(tv_matrix)
 
+```
 
 ***
 
@@ -103,7 +156,18 @@ Modern stores: 55, 75, 80, 90, 105, 65
 | Small	| 151	| 252	| 603 |
 | Medium	| 802	| 603	| 405 |
 | Large	| 753	| 55	| 408 |
+```{r, message=FALSE, warning=FALSE, comment=NA}
+city_size = c("small", "medium", "large")
+always = c(151, 802, 753)
+sometime = c(252, 603, 55)
+never = c(603, 405, 408)
 
+city_data = data.frame(city_size, always, sometime, never)
+city_matrix <- city_data %>% .[,-1] %>% as.matrix() 
+
+chisq.test(city_matrix)
+
+```
 ***
 
 <p dir="RTL"> 
@@ -111,7 +175,13 @@ Modern stores: 55, 75, 80, 90, 105, 65
 به همین منظور به طور تصادفی از صد مشتری خود اطلاعات مصرف جمع آوری می نماید.
 با توجه به داده های که داده شده آیا ربط معناداری بین فروش این دو محصول وجود دارد؟
 </p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+consumptions = read_csv("data/consumption.csv")
 
+wilcox.test(consumptions$A, consumptions$B, paired= TRUE)
+cor.test(consumptions$A, consumptions$B, method = 'spearman')
+
+```
 ***
 
 <p dir="RTL"> 
@@ -129,5 +199,15 @@ Modern stores: 55, 75, 80, 90, 105, 65
 آیا جنسیت تاثیری در مشخصه کاربری کالا دارد؟
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+characters = c("price", "design", "color")
+male = c(301, 353, 558)
+female = c(502, 155, 153)
 
+product = data.frame(characters, male, female)
+product_matrix <- product %>% .[,-1] %>% as.matrix() 
+
+chisq.test(product_matrix)
+
+```
 

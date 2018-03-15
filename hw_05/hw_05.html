@@ -17,6 +17,44 @@
 
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 
 
@@ -33,7 +71,7 @@
 <h1 class="title toc-ignore project-name">Fifth Week: Bootstrap and Resampling Methods</h1>
 <h3 class="subtitle project-tagline">Nonparametric Hypothesis tests</h3>
 <h4 class="author project-author">Mina Moosavifar - 93106788</h4>
-<h4 class="date project-date">2018-03-10 17:40:25</h4>
+<h4 class="date project-date">2018-03-15 23:56:21</h4>
 </section>
 
 
@@ -51,6 +89,17 @@
 <p dir="RTL">
 ۱. شرکتی میخواهد تحقیق کند آیا درآمد نمایندگی های آن یکسان است. برای بررسی این موضوع هشت نمایندگی به طور تصادفی انتخاب شده اند که به ترتیب میزان فروش آنها عبارت است از 102, 300, 102, 100, 205, 105, 71 , 92. با توجه به داده آیا عملکرد نمایندگی ها یکسان است؟
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readr)
+<span class="kw">library</span>(coin)
+<span class="kw">library</span>(dplyr)
+
+stores =<span class="st"> </span><span class="kw">c</span>(<span class="dv">102</span>, <span class="dv">300</span>, <span class="dv">102</span>, <span class="dv">100</span>, <span class="dv">205</span>, <span class="dv">105</span>, <span class="dv">71</span> , <span class="dv">92</span>)
+<span class="kw">chisq.test</span>(stores)</code></pre></div>
+<pre><code>
+    Chi-squared test for given probabilities
+
+data:  stores
+X-squared = 314.74, df = 7, p-value &lt; 2.2e-16</code></pre>
 <hr />
 <p dir="RTL">
 ۲. آمار فروش شرکتی در دو نوع شعبه سنتی و مدرن در زیر آمده است:
@@ -60,6 +109,41 @@
 <p dir="RTL">
 آیا تفاوتی در عملکرد دو نوع شعبه وجود دارد؟
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># permutation test</span>
+stores =<span class="st"> </span><span class="kw">c</span>(<span class="dv">50</span>, <span class="dv">50</span>, <span class="dv">60</span>, <span class="dv">70</span>, <span class="dv">75</span>, <span class="dv">80</span>, <span class="dv">90</span>, <span class="dv">85</span>, <span class="dv">55</span>, <span class="dv">75</span>, <span class="dv">80</span>, <span class="dv">90</span>, <span class="dv">105</span>, <span class="dv">65</span>)
+labels =<span class="st"> </span><span class="kw">factor</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="st">&quot;classic&quot;</span>, <span class="dv">8</span>), <span class="kw">rep</span>(<span class="st">&quot;modern&quot;</span>, <span class="dv">6</span>)))
+all_stores =<span class="st"> </span><span class="kw">data.frame</span>(stores, labels)
+
+<span class="kw">t.test</span>(stores<span class="op">~</span>labels, <span class="dt">data=</span>all_stores, <span class="dt">var.equal=</span><span class="ot">TRUE</span>) </code></pre></div>
+<pre><code>
+    Two Sample t-test
+
+data:  stores by labels
+t = -0.94003, df = 12, p-value = 0.3657
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ -27.64848  10.98181
+sample estimates:
+mean in group classic  mean in group modern 
+             70.00000              78.33333 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">coin<span class="op">::</span><span class="kw">oneway_test</span>(stores<span class="op">~</span>labels, <span class="dt">data=</span>all_stores, <span class="dt">distribution=</span><span class="st">&quot;exact&quot;</span>)</code></pre></div>
+<pre><code>
+    Exact Two-Sample Fisher-Pitman Permutation Test
+
+data:  stores by labels (classic, modern)
+Z = -0.94426, p-value = 0.3803
+alternative hypothesis: true mu is not equal to 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Wilcoxon–Mann–Whitney rank-sum test</span>
+classic_stores =<span class="st"> </span><span class="kw">c</span>(<span class="dv">50</span>, <span class="dv">50</span>, <span class="dv">60</span>, <span class="dv">70</span>, <span class="dv">75</span>, <span class="dv">80</span>, <span class="dv">90</span>, <span class="dv">85</span>)
+modern_stores =<span class="st"> </span><span class="kw">c</span>(<span class="dv">55</span>, <span class="dv">75</span>, <span class="dv">80</span>, <span class="dv">90</span>, <span class="dv">105</span>, <span class="dv">65</span>)
+
+<span class="kw">wilcox.test</span>(classic_stores, modern_stores, <span class="dt">alternative =</span> <span class="st">&quot;two.sided&quot;</span>, <span class="dt">exact =</span> <span class="ot">FALSE</span>, <span class="dt">correct =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<pre><code>
+    Wilcoxon rank sum test
+
+data:  classic_stores and modern_stores
+W = 17.5, p-value = 0.3993
+alternative hypothesis: true location shift is not equal to 0</code></pre>
 <hr />
 <p dir="RTL">
 ۳. اطلاعات حسابداری ۱۵ شعبه که به صورت تصادفی انتخاب شده اند به شرح زیر است:
@@ -72,6 +156,41 @@
 <p dir="RTL">
 آیا تبلیغات جدید عملکرد فروش را بالا برده است؟
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Wilcoxon paired signed-rank test</span>
+account_before =<span class="st"> </span><span class="kw">c</span>(<span class="dv">509</span>, <span class="dv">517</span>, <span class="dv">502</span>, <span class="dv">629</span>, <span class="dv">830</span>, <span class="dv">911</span>, <span class="dv">847</span>, <span class="dv">803</span>, <span class="dv">727</span>, <span class="dv">853</span>, <span class="dv">757</span>, <span class="dv">730</span>, <span class="dv">774</span>, <span class="dv">718</span>, <span class="dv">904</span>)
+account_after =<span class="st"> </span><span class="kw">c</span>(<span class="dv">517</span>, <span class="dv">508</span>, <span class="dv">523</span>, <span class="dv">730</span>, <span class="dv">821</span>, <span class="dv">940</span>, <span class="dv">818</span>, <span class="dv">821</span>, <span class="dv">842</span>, <span class="dv">842</span>, <span class="dv">709</span>, <span class="dv">688</span>, <span class="dv">787</span>, <span class="dv">780</span>, <span class="dv">901</span>)
+
+<span class="kw">wilcox.test</span>(account_before, account_after, <span class="dt">alt=</span> <span class="st">'less'</span>, <span class="dt">exact =</span> <span class="ot">FALSE</span>, <span class="dt">paired=</span> <span class="ot">TRUE</span>)</code></pre></div>
+<pre><code>
+    Wilcoxon signed rank test with continuity correction
+
+data:  account_before and account_after
+V = 45.5, p-value = 0.2132
+alternative hypothesis: true location shift is less than 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># permutation test</span>
+accounts =<span class="st"> </span><span class="kw">c</span>(<span class="dv">509</span>, <span class="dv">517</span>, <span class="dv">502</span>, <span class="dv">629</span>, <span class="dv">830</span>, <span class="dv">911</span>, <span class="dv">847</span>, <span class="dv">803</span>, <span class="dv">727</span>, <span class="dv">853</span>, <span class="dv">757</span>, <span class="dv">730</span>, <span class="dv">774</span>, <span class="dv">718</span>, <span class="dv">904</span>, <span class="dv">517</span>, <span class="dv">508</span>, <span class="dv">523</span>, <span class="dv">730</span>, <span class="dv">821</span>, <span class="dv">940</span>, <span class="dv">818</span>, <span class="dv">821</span>, <span class="dv">842</span>, <span class="dv">842</span>, <span class="dv">709</span>, <span class="dv">688</span>, <span class="dv">787</span>, <span class="dv">780</span>, <span class="dv">901</span>)
+labels =<span class="st"> </span><span class="kw">factor</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="st">&quot;before&quot;</span>, <span class="dv">15</span>), <span class="kw">rep</span>(<span class="st">&quot;after&quot;</span>, <span class="dv">15</span>)))
+all_accounts =<span class="st"> </span><span class="kw">data.frame</span>(accounts, labels)
+
+<span class="kw">t.test</span>(accounts<span class="op">~</span>labels, <span class="dt">data=</span>all_accounts, <span class="dt">alt =</span> <span class="st">'greater'</span>, <span class="dt">var.equal=</span><span class="ot">TRUE</span>, <span class="dt">paired=</span> <span class="ot">TRUE</span>) </code></pre></div>
+<pre><code>
+    Paired t-test
+
+data:  accounts by labels
+t = 1.1814, df = 14, p-value = 0.1286
+alternative hypothesis: true difference in means is greater than 0
+95 percent confidence interval:
+ -7.06845      Inf
+sample estimates:
+mean of the differences 
+                   14.4 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">coin<span class="op">::</span><span class="kw">oneway_test</span>(accounts<span class="op">~</span>labels, <span class="dt">data=</span>all_accounts, <span class="dt">alt=</span> <span class="st">'greater'</span>, <span class="dt">distribution=</span><span class="st">&quot;exact&quot;</span>)</code></pre></div>
+<pre><code>
+    Exact Two-Sample Fisher-Pitman Permutation Test
+
+data:  accounts by labels (after, before)
+Z = 0.2915, p-value = 0.3879
+alternative hypothesis: true mu is greater than 0</code></pre>
 <hr />
 <p dir="RTL">
 ۴. محصولی در سه رنگ سفید آبی و قرمز تولید شده است. پنج شعبه ار فروشگاه سازنده محصول به صورت تصادفی انتخاب شده و اطلاعات فروش آنها در زیر آمده است.
@@ -121,10 +240,36 @@
 <p dir="RTL">
 با توجه به داده های بالا آیا رنگی خاص در میزان فروش محصولات تاثیر دارد؟
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">store_num =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">5</span>)
+price =<span class="st"> </span><span class="kw">c</span>(<span class="dv">510</span>, <span class="dv">925</span>, <span class="dv">730</span>, <span class="dv">720</span>, <span class="dv">735</span>, <span class="dv">745</span>, <span class="dv">930</span>, <span class="dv">753</span>, <span class="dv">875</span>, <span class="dv">754</span>, <span class="dv">685</span>, <span class="dv">610</span>, <span class="dv">105</span>)
+color =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;white&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;white&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;white&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;white&quot;</span>, <span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;white&quot;</span>)
+color_data =<span class="st"> </span><span class="kw">data.frame</span>(store_num, price, color)
+
+<span class="kw">kruskal.test</span>(color <span class="op">~</span><span class="st"> </span>price, <span class="dt">data =</span> color_data)</code></pre></div>
+<pre><code>
+    Kruskal-Wallis rank sum test
+
+data:  color by price
+Kruskal-Wallis chi-squared = 12, df = 12, p-value = 0.4457</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">color_matrix =<span class="st"> </span><span class="kw">data.matrix</span>(color_data)
+<span class="kw">friedman.test</span>(color_matrix)</code></pre></div>
+<pre><code>
+    Friedman rank sum test
+
+data:  color_matrix
+Friedman chi-squared = 21.347, df = 2, p-value = 2.315e-05</code></pre>
 <hr />
 <p dir="RTL">
 ۵. یک موسسه نظرسنجی نظرات مردم در مورد رضایت از یک محصول که در ماه های فروردین اردیبهشت خرداد و تیر که از طریق تلویزیون تبلیغ شده است را مورد ارزیابی قرار می دهد.این کار بدین صورت است از افرادی در ماه اول سوال پرسیده می شود و در ماه آینده نیز از همان فرد سوال می شود که آیا از محصول مذکور راضی هستی یا خیر. با توجه به داده ایی که در پیوست تمرین آمده است آیا تبلیغات تاثیر مثبتی در افزایش رضایت مردم داشته است؟
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tv =<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;data/tv.csv&quot;</span>)
+tv_matrix &lt;-<span class="st"> </span><span class="kw">data.matrix</span>(tv)
+<span class="kw">friedman.test</span>(tv_matrix)</code></pre></div>
+<pre><code>
+    Friedman rank sum test
+
+data:  tv_matrix
+Friedman chi-squared = 1.2, df = 3, p-value = 0.753</code></pre>
 <hr />
 <p dir="RTL">
 ۶. شرکتی در حال تحقیق بر روی این موضوع است که آیا جمعیت شهر تاثیری در نوع میزان مصرف محصولات شرکت دارد. با توجه به داده زیر این موضوع را تحقیق کنید؟
@@ -165,10 +310,43 @@
 </tr>
 </tbody>
 </table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">city_size =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;small&quot;</span>, <span class="st">&quot;medium&quot;</span>, <span class="st">&quot;large&quot;</span>)
+always =<span class="st"> </span><span class="kw">c</span>(<span class="dv">151</span>, <span class="dv">802</span>, <span class="dv">753</span>)
+sometime =<span class="st"> </span><span class="kw">c</span>(<span class="dv">252</span>, <span class="dv">603</span>, <span class="dv">55</span>)
+never =<span class="st"> </span><span class="kw">c</span>(<span class="dv">603</span>, <span class="dv">405</span>, <span class="dv">408</span>)
+
+city_data =<span class="st"> </span><span class="kw">data.frame</span>(city_size, always, sometime, never)
+city_matrix &lt;-<span class="st"> </span>city_data <span class="op">%&gt;%</span><span class="st"> </span>.[,<span class="op">-</span><span class="dv">1</span>] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.matrix</span>() 
+
+<span class="kw">chisq.test</span>(city_matrix)</code></pre></div>
+<pre><code>
+    Pearson's Chi-squared test
+
+data:  city_matrix
+X-squared = 821.31, df = 4, p-value &lt; 2.2e-16</code></pre>
 <hr />
 <p dir="RTL">
 ۷. شرکتی انتظار دارد با ارایه محصول الف میزان فروش محصول ب افزایش یابد. به همین منظور به طور تصادفی از صد مشتری خود اطلاعات مصرف جمع آوری می نماید. با توجه به داده های که داده شده آیا ربط معناداری بین فروش این دو محصول وجود دارد؟
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">consumptions =<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;data/consumption.csv&quot;</span>)
+
+<span class="kw">wilcox.test</span>(consumptions<span class="op">$</span>A, consumptions<span class="op">$</span>B, <span class="dt">paired=</span> <span class="ot">TRUE</span>)</code></pre></div>
+<pre><code>
+    Wilcoxon signed rank test with continuity correction
+
+data:  consumptions$A and consumptions$B
+V = 120.5, p-value &lt; 2.2e-16
+alternative hypothesis: true location shift is not equal to 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cor.test</span>(consumptions<span class="op">$</span>A, consumptions<span class="op">$</span>B, <span class="dt">method =</span> <span class="st">'spearman'</span>)</code></pre></div>
+<pre><code>
+    Spearman's rank correlation rho
+
+data:  consumptions$A and consumptions$B
+S = 160420, p-value = 0.7121
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+       rho 
+0.03736654 </code></pre>
 <hr />
 <p dir="RTL">
 ۸. یک شرکت از ۲۰۰۰ نفر از مشتریان خود عامل خرید محصول را مورد سوال قرار میدهد که خلاصه اطلاعات آن را در زیر می توانید مشاهده کنید
@@ -202,6 +380,19 @@
 <p dir="RTL">
 آیا جنسیت تاثیری در مشخصه کاربری کالا دارد؟
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">characters =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;price&quot;</span>, <span class="st">&quot;design&quot;</span>, <span class="st">&quot;color&quot;</span>)
+male =<span class="st"> </span><span class="kw">c</span>(<span class="dv">301</span>, <span class="dv">353</span>, <span class="dv">558</span>)
+female =<span class="st"> </span><span class="kw">c</span>(<span class="dv">502</span>, <span class="dv">155</span>, <span class="dv">153</span>)
+
+product =<span class="st"> </span><span class="kw">data.frame</span>(characters, male, female)
+product_matrix &lt;-<span class="st"> </span>product <span class="op">%&gt;%</span><span class="st"> </span>.[,<span class="op">-</span><span class="dv">1</span>] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.matrix</span>() 
+
+<span class="kw">chisq.test</span>(product_matrix)</code></pre></div>
+<pre><code>
+    Pearson's Chi-squared test
+
+data:  product_matrix
+X-squared = 289.71, df = 2, p-value &lt; 2.2e-16</code></pre>
 </section>
 
 

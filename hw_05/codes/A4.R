@@ -4,3 +4,6 @@ color = c("white", "blue", "red", "white", "blue", "red", "white", "blue", "red"
 color_data = data.frame(store_num, price, color)
 
 kruskal.test(color ~ price, data = color_data)
+
+color_matrix = data.matrix(color_data)
+friedman.test(color_matrix)
