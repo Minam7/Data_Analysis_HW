@@ -80,7 +80,7 @@ tops <- house_numeric %>% select(OverallQual,GrLivArea,GarageCars,GarageArea,Tot
                                 ,SalePrice)
 
 scatterplotMatrix(tops, spread=FALSE, smoother.args=list(lty=2), 
-                  main="Scatter Plot Matrix of house")
+                  main="Scatter Plot Matrix of house price")
 ```
 
 ***
