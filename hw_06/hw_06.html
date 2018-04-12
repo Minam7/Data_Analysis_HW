@@ -71,7 +71,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1 class="title toc-ignore project-name">Sixth Week: Linear Models</h1>
 <h3 class="subtitle project-tagline">House price prediction</h3>
 <h4 class="author project-author">Mina Moosavi - 93106788</h4>
-<h4 class="date project-date">2018-04-12 21:36:06</h4>
+<h4 class="date project-date">2018-04-12 21:41:44</h4>
 </section>
 
 
@@ -1941,6 +1941,36 @@ tops &lt;-<span class="st"> </span>house_numeric <span class="op">%&gt;%</span><
 <p dir="RTL">
 ۳. یک مدل خطی بر اساس ده متغیر برای پیش بینی قیمت برازش دهید. و سپس خلاصه نتایج مدل را به دست آورید.
 </p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reg_model &lt;-<span class="st"> </span><span class="kw">lm</span>(SalePrice<span class="op">~</span>., <span class="dt">data =</span> tops)
+
+<span class="kw">summary</span>(reg_model)</code></pre></div>
+<pre><code>
+Call:
+lm(formula = SalePrice ~ ., data = tops)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-489958  -19316   -1948   16020  290558 
+
+Coefficients:
+               Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  -1.186e+06  1.291e+05  -9.187  &lt; 2e-16 ***
+OverallQual   1.960e+04  1.190e+03  16.472  &lt; 2e-16 ***
+GrLivArea     5.130e+01  4.233e+00  12.119  &lt; 2e-16 ***
+GarageCars    1.042e+04  3.044e+03   3.422 0.000639 ***
+GarageArea    1.495e+01  1.031e+01   1.450 0.147384    
+TotalBsmtSF   1.986e+01  4.295e+00   4.625 4.09e-06 ***
+`1stFlrSF`    1.417e+01  4.930e+00   2.875 0.004097 ** 
+FullBath     -6.791e+03  2.682e+03  -2.532 0.011457 *  
+TotRmsAbvGrd  3.310e+01  1.119e+03   0.030 0.976404    
+YearBuilt     2.682e+02  5.035e+01   5.328 1.15e-07 ***
+YearRemodAdd  2.965e+02  6.363e+01   4.659 3.47e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 37920 on 1449 degrees of freedom
+Multiple R-squared:  0.7737,    Adjusted R-squared:  0.7721 
+F-statistic: 495.4 on 10 and 1449 DF,  p-value: &lt; 2.2e-16</code></pre>
 <hr />
 <p dir="RTL">
 ۴. نمودار قیمت واقعی و قیمت پیش بینی را رسم نمایید و خوب بودن مدل را ارزیابی کنید.

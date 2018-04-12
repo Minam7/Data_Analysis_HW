@@ -89,6 +89,12 @@ scatterplotMatrix(tops, spread=FALSE, smoother.args=list(lty=2),
 ۳. یک مدل خطی بر اساس ده متغیر برای پیش بینی قیمت برازش دهید. و سپس خلاصه نتایج مدل را به دست آورید.
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+reg_model <- lm(SalePrice~., data = tops)
+
+summary(reg_model)
+```
+
 ***
 
 <p dir="RTL">
