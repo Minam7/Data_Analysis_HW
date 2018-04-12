@@ -1,7 +1,7 @@
 ---
 title: "Sixth Week: Linear Models"
 subtitle: "House price prediction"
-author: "student name"
+author: "Mina Moosavi - 93106788"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
@@ -19,11 +19,44 @@ output:
 </p>
 
 ***
+<p dir="RTL">
+داده ها و کتابخانه ها:
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(highcharter)
+
+dic_var = read_delim("data/dictionnaire_variables.csv",delim = ";") 
+dic_nvx = read_csv("data/dictionnaire_niveaux.csv",
+                   col_names = c("variable", "label", "Type")) %>% select(1:3) 
+house = read_csv("data/train.csv")
+house_test = read_csv(("data/test.csv"))
+```
+
+***
 
 <p dir="RTL">
 ۱. ماتریس همبستگی متغیرهای مختلف را به دست آورده و سپس رسم نمایید.
 اعداد به دست آمده را با آزمون فرض معناداری همبستگی بسنجید و سپس ده متغیری که همبستگی بالاتری با قیمت دارند را مشخص نمایید.
 </p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(corrplot)
+library(psych)
+
+house_numeric <- house %>% select_if(is.numeric)
+all_cors = cor(house_numeric)
+knitr::kable(all_cors)
+
+corrplot(all_cors, method = "color", tl.cex = 0.75/par("cex"), cl.cex = 0.75/par("cex"))
+
+knitr::kable(sort(corr.test(all_cors, adjust = "none", alpha = 0.05)$p[38,], decreasing = TRUE))
+
+knitr::kable(sort(abs(all_cors['SalePrice',]), decreasing = TRUE)[2:11])
+```
 
 ***
 
