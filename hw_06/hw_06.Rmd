@@ -69,6 +69,20 @@ knitr::kable(sort(abs(all_cors['SalePrice',]), decreasing = TRUE)[2:11])
 ۲. در یک تصویر نمودار پراکنش دو به دو ده متغیر بدست آمده به همراه قیمت را رسم نمایید و هم خطی بودن متغیرها را بررسی کنید
 </p>
 
+<p dir="RTL">
+با توجه به نمودار، خطی بودن متغیرها به این صورت مشخص می شود که در صورتی که خط سبز رگرسیون و خط قرمز که رفتار متغیر را نشان می دهد، بر روی هم افتاده باشند، متغیر خطی بوده است.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(car)
+
+tops <- house_numeric %>% select(OverallQual,GrLivArea,GarageCars,GarageArea,TotalBsmtSF
+                                ,`1stFlrSF`,FullBath,TotRmsAbvGrd,YearBuilt,YearRemodAdd
+                                ,SalePrice)
+
+scatterplotMatrix(tops, spread=FALSE, smoother.args=list(lty=2), 
+                  main="Scatter Plot Matrix of house")
+```
+
 ***
 
 <p dir="RTL">
