@@ -164,6 +164,39 @@ p-value
 بر اساس متغیرهای جدید دوباره مدل سازی کنید و نتایج رو گزارش دهید.
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+summary(reg_model)
+```
+<p dir="RTL">
+با توجه به نتایج و از آنجایی که خطای ما ۰.۰۵ است، دو متغیر
+GarageArea
+و
+TotRmsAbvGrd
+را که احتمالی بیشتر از دقت مورد ما دارند را حذف می کنیم. سپس مدل را دوباره ساخته و نمودار آن را می کشیم.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# 0.05 error
+new_tops <- tops %>% select(-TotRmsAbvGrd, -GarageArea)
+
+new_reg_model <- lm(SalePrice~., data = new_tops)
+
+summary(new_reg_model)
+
+new_predicted_price = predict(new_reg_model)
+
+ggplot(house_numeric, aes(x=house_numeric$SalePrice, y=new_predicted_price)) + geom_point(colour = "brown2") + 
+  geom_abline(slope = 1) + 
+  geom_smooth(method="lm", se=FALSE, colour = "green") +
+  xlab("Real price") +
+  ylab("Predicted price") + 
+  ggtitle("New Predicted price vs. Real price")
+```
+
+<p dir="RTL">
+همانطور که در نمودار می بینیم، مدل ما بهتر شده و به نمودار
+y = x
+نزدیک تر می شود.
+</p>
 ***
 
 <p dir="RTL">
