@@ -268,7 +268,7 @@ ggplot(test_set, aes(x=test_set$SalePrice, y=predicted)) + geom_point(colour = "
   ggtitle("New Predicted price vs. Real price with Cross Validation")
 ```
 <p dir="RTL"> 
-همانطور که مشاهده می کنیم، خطای ما افزایش یافته است و تنها ۷۵٪ داده ها را درست پیش بینی می کنیم.
+بر اساس نمونه ها مختلف، میزان خطای ما نیز مختلف است و گاهی بیشتر از ۷۷ درصد و گاهی کمتر از آن خطا داریم.
 </p>
 
 ***
@@ -277,6 +277,39 @@ ggplot(test_set, aes(x=test_set$SalePrice, y=predicted)) + geom_point(colour = "
 ۹. آیا قیمت ربط غیر خطی با یکی از ده متغیر استفاده شده دارد؟
 بر اساس دستاوردهای خود مدل را بهتر نمایید.
 </p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(gam)
+second = tops$OverallQual^2
+
+cor.test(tops$SalePrice, second)
+
+edit_reg_model = lm(SalePrice~ I(OverallQual^2) + GrLivArea + GarageCars + TotalBsmtSF + I(1.1^`1stFlrSF`)
+                    + FullBath + YearBuilt + YearRemodAdd + GarageArea, data = tops)
+summary(edit_reg_model)
+```
+<p dir="RTL"> 
+ابتدا سعی می کنیم، از میان داده ها، داده ای که مربع آن بیشترین کوریلیشن را با قیمت دارد یافته و در مدل منظور کنیم. از طرفی بر اساس نمودار پراکنش متوجه می شویم که داده ی 
+1stFlrSF
+نیز نموداری شبیه نمایی با قیمت دارد، به همین علت آن را نیز به فرم نمایی در می آوریم. سپس مدل را ساخته و می بینیم که میزان خطای مدل کمتر شده و مدل بهبود یافته است.
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+gam_model = gam(SalePrice~ s(OverallQual) + s(GrLivArea) + s(GarageCars) + s(GarageArea) + s(TotalBsmtSF) + 
+                  + s(`1stFlrSF`) + (FullBath) + s(TotRmsAbvGrd) + s(YearBuilt) + s(YearRemodAdd), data=tops)
+summary(gam_model)
+```
+
+
+<p dir="RTL"> 
+از آنجایی که مدل خطی در مسابقه درصد خوبی نداشت، از مدل
+gam
+استفاده می کنیم، در ابتدا همه ی متغیرها را برای این مدل قرار می دهیم. بر اساس نتیجه ی این مدل، متغیرهایی که تاثیری در جواب نداشته را حذف می کنیم و در نهایت مدل غیر خطی ما به صورت زیر است:
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+gam_model = gam(SalePrice~ s(OverallQual) + s(GrLivArea) + s(TotalBsmtSF) + 
+                  + s(`1stFlrSF`) + (FullBath) + s(YearBuilt) + s(YearRemodAdd), data=tops)
+summary(gam_model)
+```
 
 ***
 
@@ -288,6 +321,32 @@ kaggle
  در مسابقه 
  House Prices: Advanced Regression Techniques
 بارگذاری نمایید. سپس لینک رتبه و عدد آن را ضمیمه تمرین کنید.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+final_predict = predict(edit_reg_model, house_test)
+house_test$SalePrice = final_predict
+
+res <- house_test %>% select(Id, SalePrice) %>% 
+  mutate(SalePrice = ifelse(!is.na(SalePrice),SalePrice,mean(SalePrice, na.rm = TRUE)))
+
+write.csv(res, file = "kaggle/ans.csv",row.names=FALSE)
+
+final_predict = predict(gam_model, house_test)
+house_test$SalePrice = final_predict
+
+res <- house_test %>% select(Id, SalePrice) %>% 
+  mutate(SalePrice = ifelse(!is.na(SalePrice),SalePrice,mean(SalePrice, na.rm = TRUE)))
+
+write.csv(res, file = "kaggle/gam_ans.csv",row.names=FALSE)
+
+```
+<p dir="RTL"> 
+برای این سوال، ابتدا نتایج مدل خطی بهبود داده شده در سوال ۹ را آپلود می کنیم، که مشاهده می کنیم، دارای ۰.۴۹ خطا بوده و رتبه ی ۴۶۰۶ را کسب کرد. سپس از مدل خطی بدون بهبود استفاده می کنیم که خطای آن بیشتر بوده و دارای ۰.۷۲ خطا است. در نهایت از مدل
+gam
+استفاده می کنیم که اختلاف فاحشی با مدل های خطی دارد و تنها ۰.۱۶ خطا دارد و رتبه ی ۲۸۷۴ را کسب کرد.
+<br>
+لینک: https://www.kaggle.com/minam75
 </p>
 
 
