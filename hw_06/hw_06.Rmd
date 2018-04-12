@@ -100,7 +100,22 @@ summary(reg_model)
 <p dir="RTL">
 ۴. نمودار قیمت واقعی و قیمت پیش بینی را رسم نمایید و خوب بودن مدل را ارزیابی کنید.
 </p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+predicted_price = predict(reg_model)
 
+ggplot(house_numeric, aes(x=house_numeric$SalePrice, y=predicted_price)) + geom_point(colour = "brown3") + 
+  geom_abline(slope = 1) + 
+  geom_smooth(method="lm", se=FALSE, colour = "green") +
+  xlab("Real price") +
+  ylab("Predicted price") + 
+  ggtitle("Predicted price vs. Real price")
+
+```
+<p dir="RTL">
+همانطور که مشاهده می کنیم، نمودار ما با نمودار 
+y = x 
+تفاوت دارد، در نتیجه مدل نسبتا خوبی نداریم.(در سوالات آتی روش بهتری برای ارزیابی مدل معرفی می کنیم.)
+</p>
 ***
 
 <p dir="RTL">
