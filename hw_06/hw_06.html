@@ -71,7 +71,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h1 class="title toc-ignore project-name">Sixth Week: Linear Models</h1>
 <h3 class="subtitle project-tagline">House price prediction</h3>
 <h4 class="author project-author">Mina Moosavi - 93106788</h4>
-<h4 class="date project-date">2018-04-12 23:42:00</h4>
+<h4 class="date project-date">2018-04-13 00:03:09</h4>
 </section>
 
 
@@ -1941,7 +1941,7 @@ tops &lt;-<span class="st"> </span>house_numeric <span class="op">%&gt;%</span><
 <p dir="RTL">
 ۳. یک مدل خطی بر اساس ده متغیر برای پیش بینی قیمت برازش دهید. و سپس خلاصه نتایج مدل را به دست آورید.
 </p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reg_model &lt;-<span class="st"> </span><span class="kw">lm</span>(SalePrice<span class="op">~</span>., <span class="dt">data =</span> tops)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reg_model =<span class="st"> </span><span class="kw">lm</span>(SalePrice<span class="op">~</span>., <span class="dt">data =</span> tops)
 
 <span class="kw">summary</span>(reg_model)</code></pre></div>
 <pre><code>
@@ -2040,7 +2040,7 @@ F-statistic: 495.4 on 10 and 1449 DF,  p-value: &lt; 2.2e-16</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># 0.05 error</span>
 new_tops &lt;-<span class="st"> </span>tops <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>TotRmsAbvGrd, <span class="op">-</span>GarageArea)
 
-new_reg_model &lt;-<span class="st"> </span><span class="kw">lm</span>(SalePrice<span class="op">~</span>., <span class="dt">data =</span> new_tops)
+new_reg_model =<span class="st"> </span><span class="kw">lm</span>(SalePrice<span class="op">~</span>., <span class="dt">data =</span> new_tops)
 
 <span class="kw">summary</span>(new_reg_model)</code></pre></div>
 <pre><code>
@@ -2105,7 +2105,7 @@ sample estimates:
       cor 
 0.4760632 </code></pre>
 <p dir="RTL">
-<p>همانطور که در در نمودار اول مشاهده می کنیم، مقادیر باقیمانده حول صفر توزیع شده اند. <br> ثابت بودن واریانس) با توجه به نمودار Scale-Location و Residuals vs Fitted که حول داده ها تقریبا صاف هستند، نشان می دهد که فرض ثابت بودن واریانس فرض درستی است. <br> استقلال) بر اساس نتیجه ی کوریلیشن و هم چنین نمودار باقیمانده ها، متوجه می شویم که این داده ها از باقیمانده ها مستقل هستند. <br> نرمال بودن) با توجه به نمودار Q-Q متوجه می شویم که مقدار خوبی از داده ها، بر روی خط فیت شده اند، اما در چارک سوم، مقادیر باقیمانده فاصله ی بسیار زیادی از خط گرفته اند. در نتیجه فرض نرمال بودن تا حدودی درست است.</p>
+همانطور که در نمودار مشاهده می کنیم، مقادیر باقیمانده حول صفر توزیع شده است. <br> ثابت بودن واریانس: با توجه به نمودار Scale-Location و Residuals vs Fitted که حول داده ها تقریبا صاف هستند، نشان می دهد که فرض ثابت بودن واریانس فرض درستی است. <br> استقلال: بر اساس نتیجه ی کوریلیشن و هم چنین نمودار باقیمانده ها، متوجه می شویم که این داده ها از باقیمانده ها مستقل هستند. <br> نرمال بودن: با توجه به نمودار Q-Q متوجه می شویم که مقدار خوبی از داده ها، بر روی خط فیت شده اند، اما در چارک سوم، مقادیر باقیمانده فاصله ی بسیار زیادی از خط گرفته اند. در نتیجه فرض نرمال بودن تا حدودی درست است.
 </p>
 <hr />
 <p dir="RTL">

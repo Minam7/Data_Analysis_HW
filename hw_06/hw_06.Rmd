@@ -90,7 +90,7 @@ scatterplotMatrix(tops, spread=FALSE, smoother.args=list(lty=2),
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-reg_model <- lm(SalePrice~., data = tops)
+reg_model = lm(SalePrice~., data = tops)
 
 summary(reg_model)
 ```
@@ -178,7 +178,7 @@ TotRmsAbvGrd
 # 0.05 error
 new_tops <- tops %>% select(-TotRmsAbvGrd, -GarageArea)
 
-new_reg_model <- lm(SalePrice~., data = new_tops)
+new_reg_model = lm(SalePrice~., data = new_tops)
 
 summary(new_reg_model)
 
@@ -217,32 +217,51 @@ cor.test(house_numeric$SalePrice, residuals(new_reg_model))
 ```
 
 <p dir="RTL">
-همانطور که در در نمودار اول مشاهده می کنیم، مقادیر باقیمانده حول صفر توزیع شده اند.
+همانطور که در نمودار مشاهده می کنیم، مقادیر باقیمانده حول صفر توزیع شده است.
 <br>
-ثابت بودن واریانس)
+ثابت بودن واریانس:
 با توجه به نمودار 
 Scale-Location
 و 
 Residuals vs Fitted
 که حول داده ها تقریبا صاف هستند، نشان می دهد که فرض ثابت بودن واریانس فرض درستی است.
 <br>
-استقلال)
+استقلال:
 بر اساس نتیجه ی کوریلیشن و هم چنین نمودار باقیمانده ها، متوجه می شویم که این داده ها از باقیمانده ها مستقل هستند.
 <br>
-نرمال بودن)
+نرمال بودن:
 با توجه به نمودار
 Q-Q
 متوجه می شویم که مقدار خوبی از داده ها، بر روی خط فیت شده اند، اما در چارک سوم، مقادیر باقیمانده فاصله ی بسیار زیادی از خط گرفته اند. در نتیجه فرض نرمال بودن تا حدودی درست است.
-
-
 </p>
+
 ***
 
 <p dir="RTL">
 ۸. داده ها را به پنج قسمت تقسیم کنید. بر اساس چهار قسمت مدل خطی را بسازید و صحت مدل را برای یک قسمت 
 باقی مانده را تست کنید. خطای پیش بینی شما چقدر است؟
 </p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+sample = sample(1:length(new_tops$SalePrice), size = length(new_tops$SalePrice)*0.8)
 
+train_set = new_tops[sample,]
+test_set = new_tops[-sample,]
+
+train_reg_model = lm(SalePrice~., data = train_set)
+summary(train_reg_model)
+
+predicted = predict(train_reg_model , test_set)
+
+ggplot(test_set, aes(x=test_set$SalePrice, y=predicted)) + geom_point(colour = "brown1") + 
+  geom_abline(slope = 1) + 
+  geom_smooth(method="lm", se=FALSE, colour = "green") +
+  xlab("Real price") +
+  ylab("Predicted price") + 
+  ggtitle("New Predicted price vs. Real price with Cross Validation")
+```
+<p dir="RTL"> 
+همانطور که مشاهده می کنیم، خطای ما افزایش یافته است و تنها ۷۵٪ داده ها را درست پیش بینی می کنیم.
+</p>
 
 ***
 

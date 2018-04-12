@@ -3,7 +3,7 @@ summary(reg_model)
 # 0.05 error
 new_tops <- tops %>% select(-TotRmsAbvGrd, -GarageArea)
 
-new_reg_model <- lm(SalePrice~., data = new_tops)
+new_reg_model = lm(SalePrice~., data = new_tops)
 
 summary(new_reg_model)
 
