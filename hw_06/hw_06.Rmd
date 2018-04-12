@@ -43,6 +43,11 @@ house_test = read_csv(("data/test.csv"))
 اعداد به دست آمده را با آزمون فرض معناداری همبستگی بسنجید و سپس ده متغیری که همبستگی بالاتری با قیمت دارند را مشخص نمایید.
 </p>
 
+<p dir="RTL">
+برای این سوال تنها متغیرهای عددی در نظر گرفته شده اند، زیرا در صورتی که مقادیر غیر عددی را به عددی تبدیل کنیم، معنی آن ها عوض می شود و در رگرسیون نتیجه ی خوبی نمی دهد. هم چنین برای آزمون فرض همبستگی داده ها از
+corr.test
+استفاده شده است و خطا ۰.۰۵ در نظر گرفته شده است. هم چنین فرض صفر عدم وجود رابطه ی غیرخطی بین متغیرها است. در نتیجه در جواب هر چه احتمالات کمتر بوده باشد، فرض صفر رد می شود و متغیرها دارای رابطه ی خطی هستند.
+</p>
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 library(corrplot)
 library(psych)
@@ -53,7 +58,7 @@ knitr::kable(all_cors)
 
 corrplot(all_cors, method = "color", tl.cex = 0.75/par("cex"), cl.cex = 0.75/par("cex"))
 
-knitr::kable(sort(corr.test(all_cors, adjust = "none", alpha = 0.05)$p[38,], decreasing = TRUE))
+knitr::kable(sort(corr.test(all_cors, adjust = "none", alpha = 0.05)$p[38,]))
 
 knitr::kable(sort(abs(all_cors['SalePrice',]), decreasing = TRUE)[2:11])
 ```
