@@ -1,7 +1,7 @@
 ---
 title: "Seventh Week: Generalized Linear Models"
 subtitle: "Murder or suicide"
-author: "student name"
+author: "Mina Moosavi - 93106788"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
@@ -20,9 +20,38 @@ output:
 ***
 
 <p dir="RTL">
+بارگزاری داده ها و کتابخانه ها:
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(readxl)
+library(dplyr)
+
+death = read.csv("data/murder_suicide.csv")
+```
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+<p dir="RTL">
+
+</p>
+
+***
+
+<p dir="RTL">
 ۱. از میان متغیرهای داده مرگ و میر یک زیرمجموعه ایی بدون حشو در نظر بگیرید.
 ماتریس همبستگی متغیرهای مختلف را به دست آورده و سپس رسم نمایید. علاوه بر این نمودار پراکنش متغیرهای انتخاب شده را همزمان نسبت به هم رسم نمایید.
 </p>
+
+<p dir="RTL">
+برای بدست آوردن متغیر های حشو، ابتدا ماتریس همبستگی متغیرها را رسم می کنیم و داده هایی که بیشترین همبستگی را با یکدیگر دارند، بررسی می کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
 
 ***
 
