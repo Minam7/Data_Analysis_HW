@@ -30,13 +30,6 @@ library(dplyr)
 death = read.csv("data/murder_suicide.csv")
 ```
 
-```{r, message=FALSE, warning=FALSE, comment=NA}
-
-```
-<p dir="RTL">
-
-</p>
-
 ***
 
 <p dir="RTL">
@@ -45,13 +38,84 @@ death = read.csv("data/murder_suicide.csv")
 </p>
 
 <p dir="RTL">
-برای بدست آوردن متغیر های حشو، ابتدا ماتریس همبستگی متغیرها را رسم می کنیم و داده هایی که بیشترین همبستگی را با یکدیگر دارند، بررسی می کنیم.
+ابتدا داده هایی که عددی نیستند را تبدیل به عدد می کنیم. سپس داده های عددی را انتخاب می کنیم.
+برای بدست آوردن متغیر های حشو، ابتدا ماتریس همبستگی متغیرها را رسم می کنیم و داده هایی که بیشترین همبستگی را با یکدیگر دارند، بررسی می کنیم. در دسته هایی که یک متغیر به روش های مختلف ارزیابی شده اند، هر بار یکی را قرار داده و متغیری که بیشترین هم بستگی را داشته باشد را انتخاب می کنیم. در نهایت نمودار همبستگی ما به صورت زیر می شود که مشاهده می کنیم داده ی حشو دیگر نداریم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+library(corrplot)
 
+death_num <- death %>% mutate(sex = ifelse(Sex == 'M', 1, 0) ) %>% 
+  mutate(MannerOfDeath = ifelse(MannerOfDeath == 2, 1, 0)) %>% 
+  mutate(InjuryAtWork = ifelse(InjuryAtWork == 'Y', 1, ifelse(InjuryAtWork == 'N', 0, -1))) %>% 
+  mutate(MethodOfDisposition = ifelse(MethodOfDisposition == 'U', 0 , ifelse(MethodOfDisposition == 'O', 1 , ifelse(MethodOfDisposition == 'B', 2 , 3)))) %>% 
+  mutate(MaritalStatus = ifelse(MaritalStatus == 'S', 0, ifelse(MaritalStatus == 'M', 1, ifelse(MaritalStatus == 'W', 2, 
+                                                                                                ifelse(MaritalStatus == 'D', 3, 9))))) %>% 
+  select_if(is.numeric)
+
+all_cors = cor(death_num)
+corrplot(all_cors, method = "color", tl.cex = 0.5/par("cex"), cl.cex = 0.5/par("cex"))
+
+#### fixing education
+death_num1989 <- death_num %>% filter(EducationReportingFlag == 0) %>% 
+  mutate(edu = ifelse(Education1989Revision == 10, 2, ifelse(
+    Education1989Revision == 11, 2, ifelse(
+      Education1989Revision == 12, 3, ifelse(
+        Education1989Revision == 13, 4, ifelse(
+          Education1989Revision == 14, 5, ifelse(
+            Education1989Revision == 15, 5, ifelse(
+              Education1989Revision == 16, 6, ifelse(
+                Education1989Revision == 17, 7, ifelse(
+                  Education1989Revision == 99, 9, ifelse(
+                    Education1989Revision == 9, 2, 1
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )))) %>% select(-EducationReportingFlag, -Education1989Revision, -Education2003Revision)
+
+death_num2003 <- death_num %>% filter(EducationReportingFlag == 1) %>% 
+  rename(edu = Education2003Revision) %>% select(-EducationReportingFlag, -Education1989Revision)
+
+death_num2003$edu <- ifelse(death_num2003$edu == 8, 7, death_num2003$edu)
+
+death_num <- rbind(death_num2003, death_num1989)
+
+#### selecting data
+death_num <- death_num %>% select(ResidentStatus, edu, MonthOfDeath, AgeRecode27, PlaceOfDeathAndDecedentsStatus, 
+                                  DayOfWeekOfDeath, InjuryAtWork, MannerOfDeath, MethodOfDisposition, MaritalStatus,
+                                  ActivityCode, PlaceOfInjury, sex, RaceRecode3, CauseRecode39)
+all_cors = cor(death_num)
+corrplot(all_cors, method = "color", tl.cex = 0.75/par("cex"), cl.cex = 0.75/par("cex"))
 ```
 
+<p dir="RTL">
+هم چنین میزان همبستگی متغیرها را با متغیر
+MannerOfDeath
+بدست می آوریم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+knitr::kable(sort(abs(all_cors['MannerOfDeath',]), decreasing = TRUE)[2:15])
+```
+
+<p dir="RTL">
+از آنجایی که تعداد داده ها بسیار زیاد است و باعث کندی نمایش
+scatterplotmatrix 
+می شود، این نمودار را بر اساس تعداد کمتری از داده ها رسم می کینم.
+نمودار پراکنش متغیرها نیز به شکل زیر است:
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(car)
+
+death_num_sample = sample_n(death_num, 2000)
+scatterplotMatrix(death_num_sample, spread=FALSE, smoother.args=list(lty=2), 
+                  main="Scatter Plot Matrix of murder of suicide")
+```
 
 ***
 
@@ -59,16 +123,51 @@ death = read.csv("data/murder_suicide.csv")
 ۲. اثر هر یک از متغیرهای جنسیت، نژاد،آموزش، سن و نحوه تدفین را بر مرگ یا خودکشی ارزیابی کنید.
 </p>
 
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
 ***
 
 <p dir="RTL">
 ۳. با استفاده از مدل رگرسیون لاجستیک یک مدل به داده ها برازش دهید و سپس آن را نقص یابی کنید.
 </p>
 
+<p dir="RTL">
+ابتدا مدل را برازش می دهیم و متغیرهایی که تاثیری در مدل ندارند را حذف می کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+glm_model = glm(MannerOfDeath~., family = binomial(link = 'logit'), data = death_num)
+summary(glm_model)
+```
+
+<p dir="RTL">
+از آنجایی که سطح دقت ما ۹۸ درصد است، نتایج تاثیرات بالای ۰.۰۲ را حذف می کنیم و دوباره مدل را به داده ها برازش می دهیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+death_num <- death_num %>% select(-MonthOfDeath, -DayOfWeekOfDeath, -MaritalStatus)
+
+glm_model = glm(MannerOfDeath~., family = binomial(link = 'logit'), data = death_num)
+summary(glm_model)
+```
+
 ***
 
 <p dir="RTL">
 ۴. با استفاده از سه نمودار خروجی مدل را نسبت به داده واقعی ارزیابی کنید.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+<p dir="RTL">
+
 </p>
 
 ***
@@ -92,6 +191,49 @@ death = read.csv("data/murder_suicide.csv")
 TN, TP,FP,FN
 به همراه داده ها رسم نمایید.
 </p>
+
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+index = sample(x= 1:nrow(death_num),size = round(0.8*nrow(death_num)),replace = F)
+train = death_num[index,] 
+test =  death_num[-index,]
+
+glm_model = glm(MannerOfDeath~., family = binomial(link = 'logit'), data = train)
+
+test$prediction  = predict(glm_model, newdata = test, type = "response")
+cutoff = 0.5
+test <- test %>% mutate(get = ifelse(prediction < cutoff, 0, 1))
+
+P <- test %>% filter(MannerOfDeath == 1) %>% nrow()
+cat("P: ", P)
+
+N <- test %>% filter(MannerOfDeath == 0) %>% nrow()
+cat("N: ", N)
+
+TP <- test %>% filter(MannerOfDeath == 1 & get == 1) %>% nrow()
+cat("TP: ", TP)
+
+TN <- test %>% filter(MannerOfDeath == 0 & get == 0) %>% nrow()
+cat("TN: ", TN)
+
+FP <- test %>% filter(MannerOfDeath == 0 & get == 1) %>% nrow()
+cat("FP: ", FP)
+
+FN <- test %>% filter(MannerOfDeath == 1 & get == 0) %>% nrow()
+cat("FN: ", FN)
+
+ACC <- (TP + TN)/(P + N)
+cat("Accuracy: ", ACC)
+
+FPR <- 1 - (TN/N)
+cat("False Positive Rate: ", FPR)
+
+TPR <- TP/P
+cat("True Positive Rate: ", TPR)
+```
 
 ***
 

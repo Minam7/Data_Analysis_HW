@@ -1,4 +1,5 @@
 library(corrplot)
+library(car)
 
 death_num <- death %>% mutate(sex = ifelse(Sex == 'M', 1, 0) ) %>% 
   mutate(MannerOfDeath = ifelse(MannerOfDeath == 2, 1, 0)) %>% 
@@ -39,9 +40,6 @@ death_num2003$edu <- ifelse(death_num2003$edu == 8, 7, death_num2003$edu)
 
 death_num <- rbind(death_num2003, death_num1989)
 
-all_cors = cor(death_num)
-corrplot(all_cors, method = "color", tl.cex = 0.5/par("cex"), cl.cex = 0.5/par("cex"))
-
 #### selecting data
 death_num <- death_num %>% select(ResidentStatus, edu, MonthOfDeath, AgeRecode27, PlaceOfDeathAndDecedentsStatus, 
                                   DayOfWeekOfDeath, InjuryAtWork, MannerOfDeath, MethodOfDisposition, MaritalStatus,
@@ -49,6 +47,9 @@ death_num <- death_num %>% select(ResidentStatus, edu, MonthOfDeath, AgeRecode27
 all_cors = cor(death_num)
 corrplot(all_cors, method = "color", tl.cex = 0.75/par("cex"), cl.cex = 0.75/par("cex"))
 
-knitr::kable(sort(abs(all_cors['MannerOfDeath',]), decreasing = TRUE)[2:11])
+knitr::kable(sort(abs(all_cors['MannerOfDeath',]), decreasing = TRUE)[2:15])
 
+death_num_sample = sample_n(death_num, 10000)
+scatterplotMatrix(death_num_sample, spread=FALSE, smoother.args=list(lty=2), 
+                  main="Scatter Plot Matrix of murder of suicide")
              
