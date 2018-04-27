@@ -45,16 +45,15 @@ death = read.csv("data/murder_suicide.csv")
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 library(corrplot)
 
-death_num <- death %>% mutate(sex = ifelse(Sex == 'M', 1, 0) ) %>% 
+death_num <- death %>% mutate(Sex = factor(Sex) ) %>% 
   mutate(MannerOfDeath = ifelse(MannerOfDeath == 2, 1, 0)) %>% 
-  mutate(InjuryAtWork = ifelse(InjuryAtWork == 'Y', 1, ifelse(InjuryAtWork == 'N', 0, -1))) %>% 
-  mutate(MethodOfDisposition = ifelse(MethodOfDisposition == 'U', 0 , ifelse(MethodOfDisposition == 'O', 1 , ifelse(MethodOfDisposition == 'B', 2 , 3)))) %>% 
-  mutate(MaritalStatus = ifelse(MaritalStatus == 'S', 0, ifelse(MaritalStatus == 'M', 1, ifelse(MaritalStatus == 'W', 2, 
-                                                                                                ifelse(MaritalStatus == 'D', 3, 9))))) %>% 
-  select_if(is.numeric)
+  mutate(InjuryAtWork = factor(InjuryAtWork)) %>% 
+  mutate(MethodOfDisposition = factor(MethodOfDisposition)) %>% 
+  mutate(MaritalStatus = factor(MaritalStatus))
 
-all_cors = cor(death_num)
+all_cors = cor(data.matrix(death_num))
 corrplot(all_cors, method = "color", tl.cex = 0.5/par("cex"), cl.cex = 0.5/par("cex"))
+
 
 #### fixing education
 death_num1989 <- death_num %>% filter(EducationReportingFlag == 0) %>% 
@@ -87,8 +86,10 @@ death_num <- rbind(death_num2003, death_num1989)
 #### selecting data
 death_num <- death_num %>% select(ResidentStatus, edu, MonthOfDeath, AgeRecode27, PlaceOfDeathAndDecedentsStatus, 
                                   DayOfWeekOfDeath, InjuryAtWork, MannerOfDeath, MethodOfDisposition, MaritalStatus,
-                                  ActivityCode, PlaceOfInjury, sex, RaceRecode3, CauseRecode39)
-all_cors = cor(death_num)
+                                  ActivityCode, PlaceOfInjury, Sex, RaceRecode3)
+death_num_new <- death_num
+
+all_cors = cor(data.matrix(death_num))
 corrplot(all_cors, method = "color", tl.cex = 0.75/par("cex"), cl.cex = 0.75/par("cex"))
 ```
 
@@ -99,7 +100,7 @@ MannerOfDeath
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-knitr::kable(sort(abs(all_cors['MannerOfDeath',]), decreasing = TRUE)[2:15])
+knitr::kable(sort(abs(all_cors['MannerOfDeath',]), decreasing = TRUE)[2:14])
 ```
 
 <p dir="RTL">
@@ -124,12 +125,60 @@ scatterplotMatrix(death_num_sample, spread=FALSE, smoother.args=list(lty=2),
 </p>
 
 <p dir="RTL">
-
+با توجه به نوع داده ها(که دارای لول های مختلف هستند) از دو تست
+correlation
+و 
+chi square test of independence
+استفاده می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+death_mat <- data.matrix(death_num)
+
+cor.test(death_mat[,"Sex"], death_mat[,"MannerOfDeath"], method = 'spearman')
+chisq.test(death_num$Sex, death_num$MannerOfDeath)
+```
+
+<p dir="RTL">
+بر اساس این دو تست مشاهده می کنیم که این دو متغیر با یکدیگر ارتباط داشته و از هم مستقل نیستند.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+cor.test(death_mat [,"RaceRecode3"], death_mat [,"MannerOfDeath"], method = 'spearman')
+chisq.test(death_num$RaceRecode3, death_num$MannerOfDeath)
 
 ```
+
+<p dir="RTL">
+بر اساس این دو تست مشاهده می کنیم که این دو متغیر با یکدیگر ارتباط داشته و از هم مستقل نیستند.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+cor.test(death_mat [,"edu"], death_mat [,"MannerOfDeath"], method = 'spearman')
+chisq.test(death_num$edu, death_num$MannerOfDeath)
+```
+
+<p dir="RTL">
+بر اساس این دو تست مشاهده می کنیم که این دو متغیر با یکدیگر ارتباط داشته و از هم مستقل نیستند.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+cor.test(death_mat [,"AgeRecode27"], death_mat [,"MannerOfDeath"], method = 'spearman')
+chisq.test(death_num$AgeRecode27, death_num$MannerOfDeath)
+```
+
+<p dir="RTL">
+بر اساس این دو تست مشاهده می کنیم که این دو متغیر با یکدیگر ارتباط داشته و از هم مستقل نیستند.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+cor.test(death_mat [,"MethodOfDisposition"], death_mat [,"MannerOfDeath"], method = 'spearman')
+chisq.test(death_num$MethodOfDisposition, death_num$MannerOfDeath)
+```
+
+<p dir="RTL">
+بر اساس این دو تست مشاهده می کنیم که این دو متغیر با یکدیگر ارتباط داشته و از هم مستقل نیستند.
+</p>
 
 ***
 
@@ -147,15 +196,48 @@ summary(glm_model)
 ```
 
 <p dir="RTL">
-از آنجایی که سطح دقت ما ۹۸ درصد است، نتایج تاثیرات بالای ۰.۰۲ را حذف می کنیم و دوباره مدل را به داده ها برازش می دهیم.
+از آنجایی که دقت ما ۹۵ درصد است، متغیرهای 
+MonthOfDeath
+و 
+DayOfWeekOfDeath 
+را که 
+significant 
+نیستند، حذف می کنیم. سپس دو فاکتور غیرموثر در
+MethodOfDisposition 
+را نیز حذف می کنیم. در نهایت مدل را دوباره برازش می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-death_num <- death_num %>% select(-MonthOfDeath, -DayOfWeekOfDeath, -MaritalStatus)
+death_num <- death_num %>% select(-DayOfWeekOfDeath, -MonthOfDeath) %>% mutate(MethodOfDisposition = factor(MethodOfDisposition, exclude=c('E','R')))
 
 glm_model = glm(MannerOfDeath~., family = binomial(link = 'logit'), data = death_num)
 summary(glm_model)
+glm_model_new = glm_model
 ```
+
+<p dir="RTL">
+در خروجی مدل مشاهده می کنیم که 
+Null Deviance 
+از
+Residual Deviance
+ بیشتر است و همچنین درجه آزادی آن نیز بیشتر است. پس مدل ما نسبت به مدلی که تنها
+ intercept
+ دارد بهتر عمل می کند. اما توزیع خطای مدل ما حول ۰.۵ است و انتظار خطای بالایی از مدل داریم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
+library(boot)
+glm.diag.plots(glm_model, glmdiag = glm.diag(glm_model))
+```
+<div align="center">
+<img  src="images/Rplot1.png"  align = 'center'>
+</div>
+
+<p dir="RTL">
+بر اساس نمودار بالا مشاهده می کنیم که خطای ما توزیع مناسبی حول صفر ندارد. از طرفی از آنجا که باقیمانده ها بر روی خط فیت نشده اند، مقدار واریانس نیز ثابت نیست. همچنین مشاهده می کنیم که دیتاهایی هستند که خارج از بازه ی 
+cook 
+بوده و باعث خراب شدن مدل شده اند و حذف این داده ها به بهبود مدل کمک می کند.
+</p>
 
 ***
 
@@ -164,10 +246,50 @@ summary(glm_model)
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+death_num <- na.omit(death_num)
 
+table(death_num$MannerOfDeath, ifelse(fitted(glm_model_new)>0.5,1,0)) %>% 
+  plot(xlab = "prediction", ylab = "data") %>% 
+  title(main = "GLM Perfomance: Real Value vs Predicted Value")
 ```
 <p dir="RTL">
+در این نمودار مشاهده می کنیم که تعداد داده هایی که درست(مثبت یا منقی) پیش بینی شده است از تعداد داده هایی که غلط پیش بینی شده اند بیشتر است. اما میزان خطای مدل ما کم نیست.
+</p>
 
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(ggplot2)
+library(ggthemes)
+
+death_num_pred = death_num %>% mutate(preds = predict(glm_model, type = 'response'))
+ggplot( death_num_pred, aes( preds, color = as.factor(MannerOfDeath))) + 
+  geom_density( size = 1 ) +
+  ggtitle( "Training Set's Predicted Score" ) + 
+  scale_color_economist( name = "Manner of Death", labels = c( "suicide", "death" ) )
+```
+<p dir="RTL">
+در این نمودار مشاهده می کنیم که تقریبا بیشترین تراکم داده در هر گروه نزدیک به احتمال آن گروه قرار دارد، اما میزان همپوشانی دو نمودار زیاد است که این موضوع نشان دهنده ی خطای مدل ما می باشد.
+</p>
+
+<p dir="RTL">
+برای بخش نمایش نمودار این سوال و سه سوال بعدی از فایل
+unbalanced_functions
+استفاده می شود.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+source(file = "codes/unbalanced_functions.R")
+
+cm_info = ConfusionMatrixInfo( data = death_num_pred, predict = "preds", 
+                               actual = "MannerOfDeath", cutoff = 0.5 )
+cm_info$plot
+```
+<p dir="RTL">
+در نمودار بالا مشاهده می کنیم که تعداد مقادیر درست پیش بینی شده، از مقادیر اشتباه بیشتر است، اما تعداد پیش بینی های اشتباه بسیار زیاد است که نشان می دهد که دقت مدل ما خیلی بالا نیست. از طرفی مقادیر پیش بینی شده نیست، عموما احتمالی نزدیک ۱ یا ۰ ندارند که این موضوع نیز باعث می شود که انتخاب مقادیر 
+cutoff 
+در دقت ما بسیار تاثیر داشته باشد و انتخاب
+cutoff 
+دشوار شود.
 </p>
 
 ***
@@ -192,19 +314,20 @@ TN, TP,FP,FN
 به همراه داده ها رسم نمایید.
 </p>
 
-<p dir="RTL">
-
-</p>
-
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 index = sample(x= 1:nrow(death_num),size = round(0.8*nrow(death_num)),replace = F)
 train = death_num[index,] 
+train <- na.omit(train)
+
 test =  death_num[-index,]
+test <- na.omit(test)
 
 glm_model = glm(MannerOfDeath~., family = binomial(link = 'logit'), data = train)
 
+train$prediction  = predict(glm_model, newdata = train, type = "response")
 test$prediction  = predict(glm_model, newdata = test, type = "response")
 cutoff = 0.5
+train <- train %>% mutate(get = ifelse(prediction < cutoff, 0, 1))
 test <- test %>% mutate(get = ifelse(prediction < cutoff, 0, 1))
 
 P <- test %>% filter(MannerOfDeath == 1) %>% nrow()
@@ -233,12 +356,36 @@ cat("False Positive Rate: ", FPR)
 
 TPR <- TP/P
 cat("True Positive Rate: ", TPR)
+
+cm_info = ConfusionMatrixInfo( data = test, predict = "prediction", 
+                               actual = "MannerOfDeath", cutoff = cutoff )
+cm_info$plot
 ```
 
+<p dir="RTL">
+در نمودار بالا مشاهده می کنیم که تعداد مقادیر درست پیش بینی شده، از مقادیر اشتباه بیشتر است، اما تعداد پیش بینی های اشتباه بسیار زیاد است که نشان می دهد که دقت مدل ما خیلی بالا نیست. از طرفی مقادیر پیش بینی شده نیست، عموما احتمالی نزدیک ۱ یا ۰ ندارند که این موضوع نیز باعث می شود که انتخاب مقادیر 
+cutoff 
+در دقت ما بسیار تاثیر داشته باشد و انتخاب
+cutoff 
+دشوار شود.
+</p>
 ***
 
 <p dir="RTL">
 ۶. نمودار صحت مدل (accuracy) را بر حسب مقادیر مختلف قطع برای داده تست رسم نمایید. کدام پارامتر قطع بالاترین صحت را در پیش بینی داراست؟
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+accuracy_info = AccuracyCutoffInfo( train = train, test = test, 
+                                    predict = "prediction", actual = "MannerOfDeath" )
+accuracy_info$plot
+accuracy_info$max_acc$accuracy
+
+cat("maximum accuracy is:", accuracy_info$max_acc$accuracy, " with cutoff:", accuracy_info$max_acc$cutoff)
+```
+
+<p dir="RTL">
+همانطور که مشاهده می کنیم پارامتر قطع ۰.۴۲ بیشترین صحت را داراست.
 </p>
 
 ***
@@ -247,6 +394,26 @@ cat("True Positive Rate: ", TPR)
 ۷. نمودار 
 ROC
  را برای داده های قسمت قبل رسم نمایید. همچنین نقطه مربوط به بهترین پارامتر قطع را مشخص نمایید.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+cost_fp = 100
+cost_fn = 200
+roc_info = ROCInfo( data = cm_info$data, predict = "predict", 
+                    actual = "actual", cost.fp = cost_fp, cost.fn = cost_fn )
+plot(roc_info$plot)
+cat("optimal cutoff value:", roc_info$cutoff, "and the corresponding true positive rate:",  roc_info$sensitivity, "and false positive rate:", 1 - roc_info$specificity)
+
+```
+
+<p dir="RTL">
+همانطور که در نمودار می بینیم، بهترین مقدار
+cutoff
+۰.۳۱ است که در آن مقدار
+sensitivity 
+۰.۹۶ بوده و مقدار
+specificity 
+نیز ۰.۴۵ است.
 </p>
 
 ***
@@ -259,10 +426,45 @@ H20
 مدل مساله را بسازید و نتیجه حاصل را ارزیابی کنید.
 </p>
 
+<p dir="RTL">
+در این مدل از داده هایی که بی تاثیر بودن آن ها را بدست آورده بودیم، استفاده نمی کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(h2o)
+
+h2o.init()
+
+y <- "MannerOfDeath"
+x <- c("ResidentStatus", "edu", "AgeRecode27", "PlaceOfDeathAndDecedentsStatus", 
+       "InjuryAtWork", "MannerOfDeath", "MethodOfDisposition", "MaritalStatus",
+       "ActivityCode", "PlaceOfInjury", "Sex", "RaceRecode3")
+
+h_death_num <- as.h2o(death_num)
+
+hglm = h2o.glm(y = y, x = x,
+                training_frame = h_death_num, family="binomial", link = "logit", lambda = 0,
+               compute_p_values = TRUE, nfolds = 5)
+hglm
+```
+
+<p dir="RTL">
+ابتدا در خروجی ضرایب مدل مشاهده می کنیم که هیچ متغیری که با دقت ۹۵ درصدی ما بدون تاثیر باشد، وجود ندارد. مشاهده می کنیم که دقت ما حدود ۸۴ درصد شده است که مقدار 
+glm
+بیشتر شده است. همچنین مقدار 
+recall 
+نیز که میزان خودکشی هایی است که ما خودکشی حدس زده ایم نیز بیشتر شده است و برابر با ۹۰ درصد است. اما تعداد قتل هایی که آن ها را خودکشی تشخیص دادیم تنها حدود ۵۰ درصد است. هم چنین میانگین خطای ما از
+glm 
+کمتر شده است.
+</p>
+
 ***
 
 <p dir="RTL"> 
 ۹. آیا ما میتوانیم سرویسی به قضات ارایه کنیم تا با استفاده از اطلاعات مرگ بتوانند موارد مشکوک به قتل را از خودکشی تفکیک دهند؟
 </p>
 
-
+<p dir="RTL">
+خیر، زیرا همانطور که در مدل بالا دیدیم، میزان خطای این مدل ها کم نیست. از طرفی در مدل بالا می توانیم با دقت بالایی خودکشی هایی که واقعا خودکشی بوده اند را پیشبینی کنیم، اما دقت ما در مواردی که قتل بوده است اما خودکشی پیشبینی شده است بسیار کم است. به همین دلیل این روش (حداقل با این دقت) برای قضاوت گزینه ی مناسبی نیست.
+از طرفی این پیشبینی ها نوسان دارند، به طوری که دقت ما همواره مقدار ثابتی نیست و این موضوع نیز بر روی عدم اطمینان به این موضوع صحه می گذارد.
+</p>

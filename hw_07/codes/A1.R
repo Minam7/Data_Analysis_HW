@@ -1,16 +1,14 @@
 library(corrplot)
-library(car)
 
-death_num <- death %>% mutate(sex = ifelse(Sex == 'M', 1, 0) ) %>% 
+death_num <- death %>% mutate(Sex = factor(Sex) ) %>% 
   mutate(MannerOfDeath = ifelse(MannerOfDeath == 2, 1, 0)) %>% 
-  mutate(InjuryAtWork = ifelse(InjuryAtWork == 'Y', 1, ifelse(InjuryAtWork == 'N', 0, -1))) %>% 
-  mutate(MethodOfDisposition = ifelse(MethodOfDisposition == 'U', 0 , ifelse(MethodOfDisposition == 'O', 1 , ifelse(MethodOfDisposition == 'B', 2 , 3)))) %>% 
-  mutate(MaritalStatus = ifelse(MaritalStatus == 'S', 0, ifelse(MaritalStatus == 'M', 1, ifelse(MaritalStatus == 'W', 2, 
-                                                                                                ifelse(MaritalStatus == 'D', 3, 9))))) %>% 
-  select_if(is.numeric)
+  mutate(InjuryAtWork = factor(InjuryAtWork)) %>% 
+  mutate(MethodOfDisposition = factor(MethodOfDisposition)) %>% 
+  mutate(MaritalStatus = factor(MaritalStatus))
 
-all_cors = cor(death_num)
+all_cors = cor(data.matrix(death_num))
 corrplot(all_cors, method = "color", tl.cex = 0.5/par("cex"), cl.cex = 0.5/par("cex"))
+
 
 #### fixing education
 death_num1989 <- death_num %>% filter(EducationReportingFlag == 0) %>% 
@@ -43,11 +41,13 @@ death_num <- rbind(death_num2003, death_num1989)
 #### selecting data
 death_num <- death_num %>% select(ResidentStatus, edu, MonthOfDeath, AgeRecode27, PlaceOfDeathAndDecedentsStatus, 
                                   DayOfWeekOfDeath, InjuryAtWork, MannerOfDeath, MethodOfDisposition, MaritalStatus,
-                                  ActivityCode, PlaceOfInjury, sex, RaceRecode3, CauseRecode39)
-all_cors = cor(death_num)
+                                  ActivityCode, PlaceOfInjury, Sex, RaceRecode3)
+death_num_new <- death_num
+
+all_cors = cor(data.matrix(death_num))
 corrplot(all_cors, method = "color", tl.cex = 0.75/par("cex"), cl.cex = 0.75/par("cex"))
 
-knitr::kable(sort(abs(all_cors['MannerOfDeath',]), decreasing = TRUE)[2:15])
+knitr::kable(sort(abs(all_cors['MannerOfDeath',]), decreasing = TRUE)[2:14])
 
 death_num_sample = sample_n(death_num, 10000)
 scatterplotMatrix(death_num_sample, spread=FALSE, smoother.args=list(lty=2), 
