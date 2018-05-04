@@ -1,7 +1,7 @@
 library(highcharter)
 
 dickens_list <- gutenberg_works(author == "Dickens, Charles")
-dickens_list <- dickens_list[-c(51, 59, 65, 67, 68, 69, 70, 71, 72), ]
+dickens_list <- dickens_list[c(2, 3, 4, 12, 13, 14, 15, 19, 23, 27, 32, 33, 34, 35, 39), ]
 dickens_list <- dickens_list %>% select(gutenberg_id, title)
 
 books_texts = list()

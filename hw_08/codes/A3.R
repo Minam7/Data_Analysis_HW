@@ -24,20 +24,15 @@ for( i in 1:nrow(dickens_list)){
 }
 
 characters = bind_rows(character_list)
-
-characters <- characters %>% group_by(Book) %>% 
-  mutate(mean_count = mean(count)) %>% 
-  ungroup() %>% 
-  filter(mean_count >= 6) %>% 
-  select(name = word, count, Book)
     
 top_characters <- characters %>% 
   group_by(Book) %>% 
   mutate(percent = round(100*count/sum(count))) %>% 
   arrange(desc(percent)) %>% 
   mutate(rank = row_number() %>% as.integer()) %>% 
-  filter(rank < 6)
+  filter(rank < 6) %>%
+  rename(name = word)
 
 top_characters %>% 
-  hchart("column", hcaes(x = name, y = percent, group = Book)) %>% 
+  hchart("column", hcaes(x = Book, y = percent, group = name)) %>% 
   hc_add_theme(hc_theme_google())

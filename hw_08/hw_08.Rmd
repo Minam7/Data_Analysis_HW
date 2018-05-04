@@ -24,7 +24,7 @@ output:
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 library(gutenbergr)
-library(dplyr)
+library(tidyverse)
 library(stringr)
 library(tidytext)
 ```
@@ -38,7 +38,7 @@ library(tidytext)
 <p dir="RTL">
 ابتدا تمامی کتاب های چارلز دیکنز را با کمک
 gutenberg 
-بدست می آوریم. البته تعدادی کتاب تکراری وجود داشت که آنها را حذف کردیم. سپس تک تک کتاب را دانلود کرده و آن ها را در 
+بدست می آوریم. سپس ۱۵ رمان برتر نویسنده را انتخاب می کنیم. سپس تک تک کتاب را دانلود کرده و آن ها را در 
 book_texts 
 ذخیره می کنیم. (در سایر بخش های تمرین از این داده برای تحلیل متن بهره می بریم.)
 </p>
@@ -47,7 +47,7 @@ book_texts
 library(highcharter)
 
 dickens_list <- gutenberg_works(author == "Dickens, Charles")
-dickens_list <- dickens_list[-c(51, 59, 65, 67, 68, 69, 70, 71, 72), ]
+dickens_list <- dickens_list[c(2, 3, 4, 12, 13, 14, 15, 19, 23, 27, 32, 33, 34, 35, 39), ]
 dickens_list <- dickens_list %>% select(gutenberg_id, title)
 ```
 
@@ -128,16 +128,27 @@ https://github.com/Lchiffon/wordcloud2
 <p dir="RTL">
 ابتدا بسته ی 
 wordcloud2 
-را نصب می کنیم، سپس سعی می کنیم که ابرلغات را به صورت صورت یک انسان رسم کنیم.
+را نصب می کنیم، سپس سعی می کنیم که ابرلغات را رسم کنیم.
 </p>
 
-```{r, message=FALSE, warning=FALSE, comment=NA}
+```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
 library(wordcloud2)
 
 word_fig <- all_books %>% slice(1:200) %>% select(word, freq = count)
 
-wordcloud2(word_fig , figPath = "images/face.png" ,size = 0.65, color = "black")
+wordcloud2(word_fig , figPath = "images/dickens1_1.png" , size = 0.17, color = "black")
 ```
+<div align="center">
+<img  src="images/A2a.png"  align = 'center'>
+</div>
+
+<p dir="RTL">
+از آنجایی که ابرلغات بالا واضح نبود، ابر لغاتی به شکل صورت انسان نیز در ادامه آمده است.
+</p>
+<div align="center">
+<img  src="images/A2.png"  align = 'center'>
+</div>
+
 
 ***
 
@@ -148,7 +159,7 @@ wordcloud2(word_fig , figPath = "images/face.png" ,size = 0.65, color = "black")
 <p dir="RTL">
 برای بدست آوردن شخصیت ها، ابتدا نشانه گذاری ها را از متن کتاب حذف کرده و سپس آن را تبدیل به کلمات می کنیم. سپس 
 stopwords، 
-اعداد، تک حرف، کلماتی که با حرف کوچک شروع می شوند و کلماتی که هم با حروف بزرگ و هم حروف کوچک قرار دارند را حدف می کنیم. سپس فرآیند فوق را به ازای تمامی رمان ها انجام می دهیم. حال از آنجایی که تعداد آثار چارلز دیکنز نزدیک به ۶۰ کتاب است، زیر مجموعه ای از کتاب ها را در نظر میگیریم. سپس ۵ شخصیت پرتکرار هر کتاب را که بیشترین درصد حضور در متن را دارند را به عنوان شخصیت اصلی قرار می دهیم.
+اعداد، تک حرف، کلماتی که با حرف کوچک شروع می شوند و کلماتی که هم با حروف بزرگ و هم حروف کوچک قرار دارند را حدف می کنیم. سپس فرآیند فوق را به ازای تمامی رمان ها انجام می دهیم. سپس ۵ شخصیت پرتکرار هر کتاب را که بیشترین درصد حضور در متن را دارند را به عنوان شخصیت اصلی قرار می دهیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -178,22 +189,17 @@ for( i in 1:nrow(dickens_list)){
 }
 
 characters = bind_rows(character_list)
-
-characters <- characters %>% group_by(Book) %>% 
-  mutate(mean_count = mean(count)) %>% 
-  ungroup() %>% 
-  filter(mean_count >= 6) %>% 
-  select(name = word, count, Book)
     
 top_characters <- characters %>% 
   group_by(Book) %>% 
   mutate(percent = round(100*count/sum(count))) %>% 
   arrange(desc(percent)) %>% 
   mutate(rank = row_number() %>% as.integer()) %>% 
-  filter(rank < 6)
+  filter(rank < 6) %>%
+  rename(name = word)
 
 top_characters %>% 
-  hchart("column", hcaes(x = name, y = percent, group = Book)) %>% 
+  hchart("column", hcaes(x = Book, y = percent, group = name)) %>% 
   hc_add_theme(hc_theme_google())
 ```
 
@@ -207,10 +213,147 @@ top_characters %>%
 <img  src="images/sentiments.png"  align = 'center'>
 </div>
 
+<p dir="RTL">
+ابتدا کتاب ها را تبدیل به لغات کرده و سپس همه ی آن ها را در کنار یکدیگر قرار می دهیم. سپس 
+stopwords 
+را از داده حذف می کنیم و سپس برای هر کتاب، اشتراکات با لغات
+bing 
+را بدست می آوریم و تعداد تکرار آن ها را می شماریم. در نهایت نمودار ۲۰ لغت پر تکرار مثبت و منفی هر کتاب را رسم می کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+tidy_data = list()
+for( i in 1:nrow(dickens_list)){
+  book = books_texts[[i]]
+  wbook = book %>% mutate(linenumber = row_number(),
+         chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", 
+                                                 ignore_case = TRUE)))) %>%
+    unnest_tokens(word, text) %>% 
+    mutate(book = dickens_list[i,2,1])
+  tidy_data[[i]] = wbook
+}
+tidy_books = bind_rows(tidy_data)
+tidy_books  <- tidy_books %>% anti_join(stop_words)
+
+bing_word_counts <- tidy_books %>%
+  group_by(book) %>% 
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE)
+
+for( i in 1:nrow(dickens_list)){
+  plot_name = paste("Sentiment in ", dickens_list[i,2,1], sep=" ")
+  p <- bing_word_counts %>%
+    filter(book == dickens_list[i,2,1]) %>% 
+    group_by(sentiment) %>%
+    top_n(20) %>%
+    mutate(word = reorder(word, n)) %>%
+    ggplot(aes(word, n, fill = sentiment)) +
+    geom_col(show.legend = FALSE) +
+    facet_grid(~sentiment, scales="free_y") +
+    labs(y = plot_name,
+         x = NULL) +
+    coord_flip()
+  print(p)
+}
+```
+
 ***
 
 <p dir="RTL">
 ۵. متن داستان بینوایان را به ۲۰۰ قسمت مساوی تقسیم کنید. برای هر قسمت تعداد لغات positive و negative را حساب کنید و سپس این دو سری زمانی را در کنار هم برای مشاهده فضای احساسی داستان رسم نمایید.
+</p>
+
+<p dir="RTL">
+ابتدا کتاب بی نوایان را از 
+gutenberg 
+دانلود می کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+hugo_list <- gutenberg_works(author == "Hugo, Victor")
+hugo_list <- hugo_list[c(9:13), ] 
+```
+
+<p dir="RTL">
+سپس همانند سوال یک این کتاب ها را برای استفاده ی آینده ذخیره می کنیم، تا هر بار نیازی به دانلود کتاب ها نباشد.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
+miserable_texts = list()
+# downloading all books
+for( i in 1:nrow(hugo_list)){
+  book = gutenberg_download(hugo_list[i, 1, 1])
+  miserable_texts[[i]] = book
+}
+saveRDS(miserable_texts, file="data/miserable.rds")
+
+```
+
+<p dir="RTL">
+ابتدا کتاب ها را تبدیل به لغات کرده و سپس همه ی آن ها را در کنار یکدیگر قرار می دهیم. سپس 
+stopwords 
+را از داده حذف می کنیم. سپس به کمک تابع 
+split 
+داده ها را به ۲۰۰ قسمت با طول برابر با نسبت تعداد ردیف ها به ۲۰۰ تقسیم می کنیم. سپس برای هر دسته اشتراکات با
+bing 
+را بدست می آوریم و تعداد لغات مثبت و منفی را برای هر دسته حساب می کنیم و در نهایت نمودار را می کشیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+miserable_texts = readRDS(file="data/miserable.rds")
+
+tidy_data = list()
+for( i in 1:nrow(hugo_list)){
+  book = miserable_texts[[i]]
+  wbook = book %>% mutate(linenumber = row_number(),
+                          chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", 
+                                                                  ignore_case = TRUE)))) %>%
+    unnest_tokens(word, text) %>% 
+    mutate(book = hugo_list[i,2,1])
+  tidy_data[[i]] = wbook
+}
+miserable_books = bind_rows(tidy_data)
+miserabley_books  <- miserable_books %>% anti_join(stop_words)
+
+n <- 200
+nr <- nrow(miserabley_books)
+miserabley_books_part <- split(miserabley_books, rep(1:ceiling(nr/n), each=n, length.out=nr))
+
+books = miserabley_books_part[[1]]
+mis_bing_word_counts <- books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE)
+pos = c(mis_bing_word_counts %>% filter(sentiment == "positive") %>% count())
+neg = c(mis_bing_word_counts %>% filter(sentiment == "negative") %>% count())
+mis_atmo = data.frame(pos , neg, stringsAsFactors=FALSE)
+colnames(mis_atmo) = c("pos", "neg")
+
+for( i in 2:200){
+  books = miserabley_books_part[[i]]
+  mis_bing_word_counts <- books %>%
+    inner_join(get_sentiments("bing")) %>%
+    count(word, sentiment, sort = TRUE)
+  pos = c(mis_bing_word_counts %>% filter(sentiment == "positive") %>% count())
+  neg = c(mis_bing_word_counts %>% filter(sentiment == "negative") %>% count())
+  mis_atmo1 = data.frame(pos , neg, stringsAsFactors=FALSE)
+  colnames(mis_atmo1) = c("pos", "neg")
+  mis_atmo = bind_rows(mis_atmo, mis_atmo1)
+}
+
+mis_atmo <- mis_atmo %>% mutate(part = row_number())
+
+hc <- highchart() %>% 
+  hc_xAxis(categories = mis_atmo$part) %>% 
+  hc_add_series(name = "Postive", data = mis_atmo$pos) %>% 
+  hc_add_series(name = "Negative", data = mis_atmo$neg) %>% 
+  hc_title(text = "Emotional Atmosphere of Les Misérables", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_elementary())
+
+hc
+```
+
+<p dir="RTL">
+همانطور که مشاهده می کنیم، در اکثر داستان، فضای غمگین حکمفرما بوده است و در موارد کمی، فضای مثبت بیشتری نسبت به فضای منفی داشته ایم.
 </p>
 
 ***
@@ -219,11 +362,130 @@ top_characters %>%
 ۶. ابتدا ترکیبات دوتایی کلماتی که پشت سر هم می آیند را استخراج کنید و سپس نمودار ۳۰ جفت لغت پرتکرار را رسم نمایید.
 </p>
 
+<p dir="RTL">
+برای بدست آوردن لغات پشت سر هم، تبدیل جملات به کلمات را به کمک تابع
+unnest_tokens 
+انجام می دهیم، با این تفاوت که این بار توکن را برابر با 
+ngram 
+قرار داده و برای بدست آوردن هر دو کلمه ی متوالی،
+n 
+را برابر با ۲ قرار می دهیم. سپس از آنجایی که بسیاری از داده ها، ترکیباتی از 
+stopwords 
+هستند، هر ترکیب را به کلمات آن شکسته و 
+stopwords 
+آن را حذف می کنیم، در نهایت دوباره لغات را به یکدیگر اضافه کرده و نمودار ترکیباتی که بیشترین تکرار را داشته اند را رسم می کنیم.(البته نمودار را هم برای ترکیبات با 
+stopwords 
+و هم بدون 
+stopwords 
+رسم می کنیم.)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+tidy_data = list()
+for( i in 1:nrow(dickens_list)){
+  book = books_texts[[i]]
+  wbook = book %>% mutate(linenumber = row_number(),
+                          chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", 
+                                                                  ignore_case = TRUE)))) %>%
+    filter(text != "") %>% 
+    unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% 
+    mutate(book = dickens_list[i,2,1])
+  tidy_data[[i]] = wbook
+}
+
+tidy_colocation_books = bind_rows(tidy_data)
+
+tidy_colocation_separated <- tidy_colocation_books %>%
+  separate(bigram, c("first_word", "second_word"), sep = " ")
+
+untidy_colocation_count <- tidy_colocation_separated %>% 
+  select(-gutenberg_id, -linenumber) %>% 
+  count(first_word, second_word, sort = TRUE) %>% 
+  mutate(collocation = paste(first_word, second_word, sep=" "))
+
+top_30_collocation <- untidy_colocation_count %>% slice(1:30) %>% 
+  rename(count = n)
+
+top_30_collocation %>% 
+  hchart(type = "column",hcaes(x = collocation, y = count, color = count)) %>% 
+  hc_title(text = "Most repeated collocations with stopwords", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_sandsignika())
+
+# removing stop words
+tidy_colocation_filtered <- tidy_colocation_separated %>%
+  filter(!first_word %in% stop_words$word) %>%
+  filter(!second_word %in% stop_words$word)
+
+tidy_colocation_count <- tidy_colocation_filtered %>% 
+  count(first_word, second_word, sort = TRUE)
+
+tidy_colocation_count <- tidy_colocation_count[-c(1, 2), ]
+
+tidy_colocation_count <- tidy_colocation_count %>%
+  mutate(collocation = paste(first_word, second_word, sep=" "))
+
+top_30_collocation <- tidy_colocation_count %>% slice(1:30) %>% 
+  rename(count = n)
+
+top_30_collocation %>% 
+  hchart(type = "column",hcaes(x = collocation, y = count, color = count)) %>% 
+  hc_title(text = "Most repeated collocations without stopwords", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_sandsignika())
+```
+
 ***
 
 <p dir="RTL">
 ۷. جفت کلماتی که با she و یا he آغاز می شوند را استخراج کنید. بیست فعل پرتکراری که زنان و مردان در داستان های دیکنز انجام می دهند را استخراج کنید و نمودار آن را رسم نمایید.
 </p>
+
+<p dir="RTL">
+برای این سوال از داده ای که در سوال قبل بدست آوریم اما 
+stopwords 
+آن را حذف نکردیم استفاده می کنیم. برای بدست آوردن ترکیبات
+he 
+و 
+she 
+عباراتی را که کلمه اول آن ها، برابر با کلمات فوق است را فیلتر می کنیم و سپس بر اساس جنسیت گروه بندی کرده و ۲۰ ترکیب پر تکرار هر گروه را نمایش می دهیم.(البته این نمودار را یک بار با حذف 
+stopwords 
+فعل ها و یک بار بدون آن رسم می کنیم.) همانطور که مشاهده می کنیم، نموداری که 
+stopwords 
+آن حذف شده است، فعل های با معنی تری دارد.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+she_or_he <- untidy_colocation_count %>% filter(first_word == "she" | first_word == "he")
+
+she_or_he <- she_or_he %>% group_by(first_word) %>% arrange(desc(n)) %>% top_n(20, wt = n)
+
+# with stopwords
+she_or_he %>% ungroup() %>% filter(first_word == "she") %>% rename(count = n) %>% 
+  hchart(type = "column",hcaes(x = second_word, y = count, color = count)) %>% 
+  hc_title(text = "Most repeated female verbs with stopwords", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_flat())
+
+she_or_he %>% ungroup() %>% filter(first_word == "he") %>% rename(count = n) %>% 
+  hchart(type = "column",hcaes(x = second_word, y = count, color = count)) %>% 
+  hc_title(text = "Most repeated male verbs with stopwords", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_darkunica())
+
+# without stopwords
+she_or_he <- untidy_colocation_count %>% filter(first_word == "she" | first_word == "he") %>% 
+  filter(!second_word %in% stop_words$word) %>% 
+  group_by(first_word) %>% arrange(desc(n)) %>% top_n(20, wt = n)
+
+she_or_he %>% ungroup() %>% filter(first_word == "she") %>% rename(count = n) %>% 
+  hchart(type = "column",hcaes(x = second_word, y = count, color = count)) %>% 
+  hc_title(text = "Most repeated female verbs without stopwords", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_flat())
+
+she_or_he %>% ungroup() %>% filter(first_word == "he") %>% rename(count = n) %>% 
+  hchart(type = "column",hcaes(x = second_word, y = count, color = count)) %>% 
+  hc_title(text = "Most repeated male verbs without stopwords", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_darkunica())
+
+```
+
 
 ***
 
