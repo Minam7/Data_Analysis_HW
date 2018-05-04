@@ -1,5 +1,3 @@
-library(highcharter)
-
 character_list = list()
 for( i in 1:nrow(dickens_list)){
   book = books_texts[[i]]

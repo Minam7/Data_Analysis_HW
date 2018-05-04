@@ -9,6 +9,7 @@ for( i in 1:nrow(hugo_list)){
 }
 saveRDS(miserable_texts, file="data/miserable.rds")
 
+miserable_texts = readRDS(file="data/miserable.rds")
 tidy_data = list()
 for( i in 1:nrow(hugo_list)){
   book = miserable_texts[[i]]

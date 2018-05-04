@@ -14,6 +14,7 @@ for( i in 1:nrow(dickens_list)){
 
 saveRDS(books_texts, file="data/booktext.rds")
 
+books_texts = readRDS(file="data/booktext.rds")
 # using books
 all_books = list()
 for( i in 1:nrow(dickens_list)){

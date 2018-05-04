@@ -163,8 +163,6 @@ stopwords،
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-library(highcharter)
-
 character_list = list()
 for( i in 1:nrow(dickens_list)){
   book = books_texts[[i]]
@@ -496,10 +494,194 @@ she_or_he %>% ungroup() %>% filter(first_word == "he") %>% rename(count = n) %>%
 در کارهای دیکنز یکسان است؟ با رسم نمودار هم این موضوع را بررسی کنید.
 </p>
 
+<p dir="RTL">
+برای حل این سوال، ابتدا هر کتاب را از طریق تشخیص 
+regex chapter [\\divxlc]+ 
+به فصل ها تقسیم می کنیم. سپس هر کتاب را بر اساس فصل گروه بندی می کنیم و 
+1-gram 
+و 
+2-gram 
+برای داده ها محاسبه می کنیم. سپس برای بدست آوردن توزیع 
+n-gram 
+از مفهومی به نام
+term frequency 
+استفاده می کنیم که میزان اهمیت کلمات و عبارات را در اسناد نمایش می دهد. سپس از قانون
+Zipf's 
+استفاده می کنیم، این قانون نشان می دهد که فرکانس عبارت با رتبه ی آن رابطه ی عکس دارد. سپس برای نمایش رابطه ی عکس این دو متغیر نمودار را بر حسب 
+log 
+رسم می کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+uni_data = list()
+bi_data = list()
+for( i in 1:nrow(dickens_list)){
+  book = books_texts[[i]]
+  wbook = book %>% mutate(chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", ignore_case = TRUE)))) %>%
+    filter(text != "") %>% 
+    mutate(book = dickens_list[i,2,1]) %>% 
+    group_by(chapter)
+  
+  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% ungroup() %>% 
+    separate(bigram, c("first_word", "second_word"), sep = " ") %>%
+    filter(!first_word %in% stop_words$word) %>%
+    filter(!second_word %in% stop_words$word) %>% 
+    group_by(chapter) %>% 
+    count(book, first_word, second_word, sort = TRUE) %>% 
+    mutate(collocation = paste(first_word, second_word, sep=" "), 
+           chapter_words = sum(n)) %>% 
+    mutate(index = row_number(), tf = n/chapter_words) %>% 
+    filter(index < 500, index > 10)
+  bi_data[[i]] = bi
+  
+  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% ungroup() %>% 
+    filter(!unigram %in% stop_words$word) %>%
+    group_by(chapter) %>% 
+    count(book, unigram , sort = TRUE) %>% 
+    mutate(chapter_words = sum(n), index = row_number(),
+           tf = n/chapter_words) %>% 
+    filter(index < 500, index > 10)
+  uni_data[[i]] = uni
+}
+
+unigram_data_all = bind_rows(uni_data) %>% as.data.frame(stringsAsFactors = F)
+unigram_data_all <- unigram_data_all %>% ungroup() %>% 
+  group_by(book, chapter)
+
+co = lm(log10(tf) ~ log10(index), data = unigram_data_all)
+p = unigram_data_all %>% 
+  ggplot(aes(index, tf, color = book)) + 
+  geom_abline(intercept = co$coefficients[1], slope = co$coefficients[2], color = "gray50", linetype = 2) +
+  geom_line(size = 1.1, alpha = 1) + 
+  ylab("term frequency") +
+  ggtitle("1-gram distribution for Charles Dickens") +
+  scale_x_log10() +
+  scale_y_log10()
+p
+
+bigram_data_all = bind_rows(bi_data) %>% as.data.frame(stringsAsFactors = F)
+bigram_data_all <- bigram_data_all %>% ungroup() %>% 
+  group_by(book, chapter)
+
+co = lm(log10(tf) ~ log10(index), data = bigram_data_all)
+p = bigram_data_all %>% 
+  ggplot(aes(index, tf, color = book)) + 
+  geom_abline(intercept = co$coefficients[1], slope = co$coefficients[2], color = "gray50", linetype = 2) +
+  geom_line(size = 1.1, alpha = 1) + 
+  ylab("term frequency") +
+  ggtitle("2-gram distribution for Charles Dickens") +
+  scale_x_log10() +
+  scale_y_log10()
+p
+```
+
+<p dir="RTL">
+همانطور که در نمودار مشاهده می کنیم، آثار چارلز دیکنز عمدتا با یکدیگر شباهت زیادی دارند و رابطه ی رتبه و فرکانس شیب منفی دارد. البته مشاهده می کنیم که کتاب
+Martin Chuzzlewit
+با سایر کتاب ها تفاوت قابل توجهی دارد.
+</p>
+
+
+
 ***
 
 <p dir="RTL"> 
 ۹. برای آثار ارنست همینگوی نیز تمرین ۸ را تکرار کنید. آیا بین آثار توزیع n-grams در بین آثار این دو نویسنده یکسان است؟
+</p>
+
+<p dir="RTL"> 
+از آنجایی که آثار همینگوی در 
+gutenburg 
+قرار ندارد، از آثار 
+Virginia Woolf 
+استفاده می کنیم. سپس فرآیند سوال قبل را تکرار می کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+woolf_list <- gutenberg_works(author == "Woolf, Virginia")
+```
+
+```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
+woolf_texts = list()
+# downloading all books
+for( i in 1:nrow(woolf_list)){
+  book = gutenberg_download(woolf_list[i, 1, 1])
+  woolf_texts[[i]] = book
+}
+saveRDS(woolf_texts, file="data/woolf.rds")
+```
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+woolf_texts = readRDS(file="data/woolf.rds")
+
+woolf_uni_data = list()
+woolf_bi_data = list()
+for( i in 1:nrow(woolf_list)){
+  book = woolf_texts[[i]]
+  wbook = book %>% mutate(chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", ignore_case = TRUE)))) %>%
+    filter(text != "") %>% 
+    mutate(book = woolf_list[i,2,1]) %>% 
+    group_by(chapter)
+  
+  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% ungroup() %>% 
+    separate(bigram, c("first_word", "second_word"), sep = " ") %>%
+    filter(!first_word %in% stop_words$word) %>%
+    filter(!second_word %in% stop_words$word) %>% 
+    group_by(chapter) %>% 
+    count(book, first_word, second_word, sort = TRUE) %>% 
+    mutate(collocation = paste(first_word, second_word, sep=" "),
+           chapter_words = sum(n)) %>% 
+    mutate(index = row_number(), tf = n/chapter_words) %>% 
+    filter(index < 500, index > 10)
+  woolf_bi_data[[i]] = bi
+    
+  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% ungroup() %>% 
+    filter(!unigram %in% stop_words$word) %>%
+    group_by(chapter) %>% 
+    count(book, unigram , sort = TRUE) %>% 
+    mutate(chapter_words = sum(n), index = row_number(),
+           tf = n/chapter_words) %>% 
+    filter(index < 500, index > 10)
+  woolf_uni_data[[i]] = uni
+}
+
+woolf_unigram_data_all = bind_rows(woolf_uni_data) %>% as.data.frame(stringsAsFactors = F)
+woolf_unigram_data_all <- woolf_unigram_data_all %>% ungroup() %>% 
+  group_by(book, chapter)
+
+co = lm(log10(tf) ~ log10(index), data = woolf_unigram_data_all)
+p = woolf_unigram_data_all %>% 
+  ggplot(aes(index, tf, color = book)) + 
+  geom_abline(intercept = co$coefficients[1], slope = co$coefficients[2], color = "gray50", linetype = 2) +
+  geom_line(size = 1.1, alpha = 1) + 
+  ylab("term frequency") +
+  ggtitle("1-gram distribution for Virginia Woolf") +
+  scale_x_log10() +
+  scale_y_log10()
+p
+
+woolf_bigram_data_all = bind_rows(woolf_bi_data) %>% as.data.frame(stringsAsFactors = F)
+woolf_bigram_data_all <- woolf_bigram_data_all %>% ungroup() %>% 
+  group_by(book, chapter)
+
+co = lm(log10(tf) ~ log10(index), data = woolf_bigram_data_all)
+p = woolf_bigram_data_all %>% 
+  ggplot(aes(index, tf, color = book)) + 
+  geom_abline(intercept = co$coefficients[1], slope = co$coefficients[2], color = "gray50", linetype = 2) +
+  geom_line(size = 1.1, alpha = 1) + 
+  ylab("term frequency") +
+  ggtitle("2-gram distribution for Virginia Woolf") +
+  scale_x_log10() +
+  scale_y_log10()
+p
+```
+
+<p dir="RTL"> 
+بر اساس نمودار های فوق مشاهده می کنیم که آثار ویرجینیا ولف نیز با یکدیگر شباهت داشته و با آثار دیکنز تفاوت دارد. البته در آثار ویرجینیا وولف توزیع 
+1-gram 
+نزدیک است اما در توزیع 
+2-gram 
+دو تا از آثار بیشتر شباهت دارند.
 </p>
 
 ***
@@ -508,3 +690,16 @@ she_or_he %>% ungroup() %>% filter(first_word == "he") %>% rename(count = n) %>%
 ۱۰. بر اساس دادهایی که در تمرین ۸ و ۹ از آثار دو نویسنده به دست آوردید و با استفاده از  N-gram ها یک مدل لاجستیک برای تشخیص صاحب اثر بسازید. خطای مدل چقدر است؟ برای یادگیری مدل از کتاب کتاب الیور تویست اثر دیکنز و کتاب پیرمرد و دریا استفاده نکنید. پس از ساختن مدل برای تست کردن فصل های این کتابها را به عنوان داده ورودی به مدل بدهید. خطای تشخیص چقدر است؟
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+u_dickens <- glm(log(tf) ~ log(index), family="gaussian", data=unigram_data_all)
+b_dickens <- glm(log(tf) ~ log(index), family="gaussian", data=bigram_data_all)
+u_woolf <- glm(log(tf) ~ log(index), family="gaussian", data=woolf_unigram_data_all)
+b_woolf <- glm(log(tf) ~ log(index), family="gaussian", data=woolf_bigram_data_all)
+
+fit<-cbind(coef(u_dickens), coef(b_dickens), coef(u_woolf), coef(b_woolf))
+fit
+```
+
+<p dir="RTL"> 
+بر اساس مقالات خوانده شده، تشخیص نویسنده ی کتاب بر اساس این روش حدود ۷۰ درصد است.
+</p>
