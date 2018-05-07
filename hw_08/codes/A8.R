@@ -4,28 +4,22 @@ for( i in 1:nrow(dickens_list)){
   book = books_texts[[i]]
   wbook = book %>% mutate(chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", ignore_case = TRUE)))) %>%
     filter(text != "") %>% 
-    mutate(book = dickens_list[i,2,1]) %>% 
     group_by(chapter)
   
-  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% ungroup() %>% 
+  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% 
     separate(bigram, c("first_word", "second_word"), sep = " ") %>%
-    filter(!first_word %in% stop_words$word) %>%
-    filter(!second_word %in% stop_words$word) %>% 
-    group_by(chapter) %>% 
-    count(book, first_word, second_word, sort = TRUE) %>% 
+    count(first_word, second_word, sort = TRUE) %>% 
     mutate(collocation = paste(first_word, second_word, sep=" "), 
            chapter_words = sum(n)) %>% 
     mutate(index = row_number(), tf = n/chapter_words) %>% 
-    filter(index < 500, index > 10)
+    mutate(book = dickens_list[i,2,1])
   bi_data[[i]] = bi
   
-  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% ungroup() %>% 
-    filter(!unigram %in% stop_words$word) %>%
-    group_by(chapter) %>% 
-    count(book, unigram , sort = TRUE) %>% 
+  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% 
+    count(unigram , sort = TRUE) %>% 
     mutate(chapter_words = sum(n), index = row_number(),
            tf = n/chapter_words) %>% 
-    filter(index < 500, index > 10)
+    mutate(book = dickens_list[i,2,1])
   uni_data[[i]] = uni
 }
 
@@ -58,3 +52,7 @@ p = bigram_data_all %>%
   scale_x_log10() +
   scale_y_log10()
 p
+
+kruskal.test(book ~ tf, unigram_data_all)
+
+kruskal.test(book ~ tf, bigram_data_all)

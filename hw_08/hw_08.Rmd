@@ -496,7 +496,7 @@ she_or_he %>% ungroup() %>% filter(first_word == "he") %>% rename(count = n) %>%
 
 <p dir="RTL">
 برای حل این سوال، ابتدا هر کتاب را از طریق تشخیص 
-regex chapter [\\divxlc]+ 
+regex 'chapter [\\divxlc]+' 
 به فصل ها تقسیم می کنیم. سپس هر کتاب را بر اساس فصل گروه بندی می کنیم و 
 1-gram 
 و 
@@ -519,28 +519,22 @@ for( i in 1:nrow(dickens_list)){
   book = books_texts[[i]]
   wbook = book %>% mutate(chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", ignore_case = TRUE)))) %>%
     filter(text != "") %>% 
-    mutate(book = dickens_list[i,2,1]) %>% 
     group_by(chapter)
   
-  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% ungroup() %>% 
+  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% 
     separate(bigram, c("first_word", "second_word"), sep = " ") %>%
-    filter(!first_word %in% stop_words$word) %>%
-    filter(!second_word %in% stop_words$word) %>% 
-    group_by(chapter) %>% 
-    count(book, first_word, second_word, sort = TRUE) %>% 
+    count(first_word, second_word, sort = TRUE) %>% 
     mutate(collocation = paste(first_word, second_word, sep=" "), 
            chapter_words = sum(n)) %>% 
     mutate(index = row_number(), tf = n/chapter_words) %>% 
-    filter(index < 500, index > 10)
+    mutate(book = dickens_list[i,2,1])
   bi_data[[i]] = bi
   
-  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% ungroup() %>% 
-    filter(!unigram %in% stop_words$word) %>%
-    group_by(chapter) %>% 
-    count(book, unigram , sort = TRUE) %>% 
+  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% 
+    count(unigram , sort = TRUE) %>% 
     mutate(chapter_words = sum(n), index = row_number(),
            tf = n/chapter_words) %>% 
-    filter(index < 500, index > 10)
+    mutate(book = dickens_list[i,2,1])
   uni_data[[i]] = uni
 }
 
@@ -581,7 +575,17 @@ Martin Chuzzlewit
 با سایر کتاب ها تفاوت قابل توجهی دارد.
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+kruskal.test(book ~ tf, unigram_data_all)
 
+kruskal.test(book ~ tf, bigram_data_all)
+```
+
+<p dir="RTL">
+برای تست تفاوت میان کتاب های مختلف، از تست
+kruskal 
+استفاده می کنیم، اما همانطور که در نمودار نیز مشاهده کردیم، کتاب ها کاملا با یکدیگر مطابق نبوده و در نتیجه این موضوع باعث می شود که فرض صفر ما که کتاب ها از یک توزیع آمده اند، باطل شود.
+</p>
 
 ***
 
@@ -593,12 +597,13 @@ Martin Chuzzlewit
 از آنجایی که آثار همینگوی در 
 gutenburg 
 قرار ندارد، از آثار 
-Virginia Woolf 
+Jane Austen
 استفاده می کنیم. سپس فرآیند سوال قبل را تکرار می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-woolf_list <- gutenberg_works(author == "Woolf, Virginia")
+woolf_list <- gutenberg_works(author == "Austen, Jane")
+woolf_list <- woolf_list[-c(6, 9, 10), ]
 ```
 
 ```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
@@ -620,28 +625,22 @@ for( i in 1:nrow(woolf_list)){
   book = woolf_texts[[i]]
   wbook = book %>% mutate(chapter = cumsum(str_detect(text, regex("chapter [\\divxlc]+", ignore_case = TRUE)))) %>%
     filter(text != "") %>% 
-    mutate(book = woolf_list[i,2,1]) %>% 
     group_by(chapter)
   
-  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% ungroup() %>% 
+  bi = wbook %>% unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% 
     separate(bigram, c("first_word", "second_word"), sep = " ") %>%
-    filter(!first_word %in% stop_words$word) %>%
-    filter(!second_word %in% stop_words$word) %>% 
-    group_by(chapter) %>% 
-    count(book, first_word, second_word, sort = TRUE) %>% 
+    count(first_word, second_word, sort = TRUE) %>% 
     mutate(collocation = paste(first_word, second_word, sep=" "),
            chapter_words = sum(n)) %>% 
     mutate(index = row_number(), tf = n/chapter_words) %>% 
-    filter(index < 500, index > 10)
+    mutate(book = woolf_list[i,2,1])
   woolf_bi_data[[i]] = bi
     
-  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% ungroup() %>% 
-    filter(!unigram %in% stop_words$word) %>%
-    group_by(chapter) %>% 
-    count(book, unigram , sort = TRUE) %>% 
+  uni = wbook %>% unnest_tokens(unigram, text, token = "ngrams", n = 1) %>% 
+    count(unigram , sort = TRUE) %>% 
     mutate(chapter_words = sum(n), index = row_number(),
            tf = n/chapter_words) %>% 
-    filter(index < 500, index > 10)
+    mutate(book = woolf_list[i,2,1])
   woolf_uni_data[[i]] = uni
 }
 
@@ -655,7 +654,7 @@ p = woolf_unigram_data_all %>%
   geom_abline(intercept = co$coefficients[1], slope = co$coefficients[2], color = "gray50", linetype = 2) +
   geom_line(size = 1.1, alpha = 1) + 
   ylab("term frequency") +
-  ggtitle("1-gram distribution for Virginia Woolf") +
+  ggtitle("1-gram distribution for Jane Austen") +
   scale_x_log10() +
   scale_y_log10()
 p
@@ -670,19 +669,40 @@ p = woolf_bigram_data_all %>%
   geom_abline(intercept = co$coefficients[1], slope = co$coefficients[2], color = "gray50", linetype = 2) +
   geom_line(size = 1.1, alpha = 1) + 
   ylab("term frequency") +
-  ggtitle("2-gram distribution for Virginia Woolf") +
+  ggtitle("2-gram distribution for Jane Austen") +
   scale_x_log10() +
   scale_y_log10()
 p
 ```
 
 <p dir="RTL"> 
-بر اساس نمودار های فوق مشاهده می کنیم که آثار ویرجینیا ولف نیز با یکدیگر شباهت داشته و با آثار دیکنز تفاوت دارد. البته در آثار ویرجینیا وولف توزیع 
-1-gram 
-نزدیک است اما در توزیع 
-2-gram 
-دو تا از آثار بیشتر شباهت دارند.
+بر اساس نمودار های فوق مشاهده می کنیم که آثار جین آستین نیز با یکدیگر شباهت داشته و با آثار دیکنز تفاوت دارد. البته مشاهده می کنیم که اثری که جین آستین در دوران نوجوانی نوشته است، تفاوت محسوسی با سایر آثار او دارد.
 </p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+kruskal.test(book ~ tf, woolf_unigram_data_all)
+
+kruskal.test(book ~ tf, woolf_bigram_data_all)
+```
+
+<p dir="RTL">
+برای تست تفاوت میان کتاب های مختلف، از تست
+kruskal 
+استفاده می کنیم، اما همانطور که در نمودار نیز مشاهده کردیم، کتاب ها کاملا با یکدیگر مطابق نبوده و در نتیجه این موضوع باعث می شود که فرض صفر ما که کتاب ها از یک توزیع آمده اند، باطل شود.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+wilcox.test(unigram_data_all$tf, woolf_unigram_data_all$tf,alternative = "two.sided", exact = FALSE, correct = FALSE)
+
+wilcox.test(bigram_data_all$tf, woolf_bigram_data_all$tf,alternative = "two.sided", exact = FALSE, correct = FALSE)
+```
+
+<p dir="RTL"> 
+همینطور برای مشاهده ی یکسان بودن توزیع آثار دو نویسنده، از تست
+Wilcoxon–Mann–Whitney rank-sum test 
+استفاده می کنیم، و مشاهده می کنیم که نتیجه نشان می دهد که فرض صفر باطل شده و دو نویسنده، دارای توزیع یکسانی نیستند.
+</p>
+
 
 ***
 
@@ -691,15 +711,51 @@ p
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-u_dickens <- glm(log(tf) ~ log(index), family="gaussian", data=unigram_data_all)
-b_dickens <- glm(log(tf) ~ log(index), family="gaussian", data=bigram_data_all)
-u_woolf <- glm(log(tf) ~ log(index), family="gaussian", data=woolf_unigram_data_all)
-b_woolf <- glm(log(tf) ~ log(index), family="gaussian", data=woolf_bigram_data_all)
+dickens_data_all <- bind_rows(unigram_data_all %>% ungroup() %>% mutate(author = 0) %>% select(book, chapter, author, tf, index, n),
+                              bigram_data_all %>% ungroup() %>% mutate(author = 0) %>% select(book, chapter, author, tf, index, n))
 
-fit<-cbind(coef(u_dickens), coef(b_dickens), coef(u_woolf), coef(b_woolf))
-fit
+austen_data_all <- bind_rows(woolf_unigram_data_all %>% ungroup() %>% mutate(author = 1) %>% select(book, chapter, author, tf, index, n),
+                              woolf_bigram_data_all %>% ungroup() %>% mutate(author = 1) %>% select(book, chapter, author, tf, index, n))
+
+dickens_train<- dickens_data_all %>% filter(book != "Oliver Twist")
+dickens_test <- dickens_data_all %>% filter(book == "Oliver Twist")
+
+austen_train <- austen_data_all %>% filter(book != "Mansfield Park")
+austen_test <- austen_data_all %>% filter(book == "Mansfield Park")
+
+train <- bind_rows(dickens_train, austen_train)
+test <- bind_rows(dickens_test, austen_test)
+
+glm_model <- glm(author ~ tf + index + n + chapter,family = binomial(link = 'logit'), data = train)
+summary(glm_model)
+
+cutoff = 0.2
+test$predict = predict(glm_model, newdata = test, type = 'response')
+test <- test %>% mutate(get = ifelse(predict < cutoff, 0, 1))
+
+P <- test %>% filter(author == 1) %>% nrow()
+N <- test %>% filter(author == 0) %>% nrow()
+TP <- test %>% filter(author == 1 & get == 1) %>% nrow()
+TN <- test %>% filter(author == 0 & get == 0) %>% nrow()
+FP <- test %>% filter(author == 0 & get == 1) %>% nrow()
+FN <- test %>% filter(author == 1 & get == 0) %>% nrow()
+
+ACC <- (TP + TN)/(P + N)
+cat("Accuracy: ", ACC)
+
+FPR <- 1 - (TN/N)
+cat("False Positive Rate: ", FPR)
+
+TPR <- TP/P
+cat("True Positive Rate: ", TPR)
 ```
 
 <p dir="RTL"> 
-بر اساس مقالات خوانده شده، تشخیص نویسنده ی کتاب بر اساس این روش حدود ۷۰ درصد است.
+بر اساس مقالات خوانده شده، تشخیص نویسنده ی کتاب بر اساس این روش حدود ۷۰ درصد است. اما ما مدل خود را بر اساس
+term frequency 
+و 
+rank 
+و 
+frequency 
+و فصل کتاب، لرن کردیم. نتیجه مدل نشان داد که تمامی این متغیرها در مدل تاثیر قابل توجهی دارند. اما در نهایت میزان خطای ما حول ۰.۵ است و نتایج نشان می دهد که مدل ما بسیار شبیه مدل رندم عمل می کند. هم چنین در نهایت بدست آوردیم که دقت تشخیص ما ۵۲ درصد است.
 </p>
