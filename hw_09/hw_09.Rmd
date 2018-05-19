@@ -187,12 +187,24 @@ stock_yearly %>% group_by(Sector) %>% arrange(desc(five_year_profit)) %>% slice(
 ۲. یک اعتقاد خرافی می گوید خرید سهام در روز سیزدهم ماه زیان آور است. این گزاره را مورد ارزیابی قرار دهید.
 </p>
 
+<p dir="RTL">
+برای تست این موضوع، ابتدا میزان سود را به ازای تمامی شرکت ها در تمامی روزها حساب می کنیم. سپس برای هر روز نرخی به نام شکست تعریف می کنیم که برابر با نسبت تعداد شرکت های دارای افت سهام به تعداد کلی شرکت ها است. در نهایت روز ۱۳ ام ماه را از سایر روزها جدا می کنیم و بین این دو گروه آزمون فرض انجام می دهیم. در این آزمون فرض صفر را برابر بودن نرخ شکست در ۱۳ ام ماه و سایر روزها در نظر میگیریم.
+</p>
+
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+sp500 <- sp500 %>% mutate(profit = 100*((Close - Open)/Open))
+
+non_profit_range <- sp500 %>% filter(profit < 0) %>% group_by(Year, Month, Day) %>% summarise(damage_rate = n()/505)
+
+thirteen <- non_profit_range %>% filter(Day == 13)
+non_thirteen <- non_profit_range %>% filter(Day != 13)
+
+t.test(thirteen$damage_rate, non_thirteen$damage_rate, alt = "two.sided")
 
 ```
 
 <p dir="RTL">
-
+همانطور که نتیجه ی بالا نشان می دهد، فرض یکسان بودن عملکرد در سیزدهم ماه با سایر روزها رد نمی شود، پس نمی توانیم فرض خرافی را قبول کنیم.
 </p>
 
 ***
