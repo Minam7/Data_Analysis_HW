@@ -65,10 +65,134 @@ sector <- read_csv("data/constituents.csv")
 ۱. چه شرکتی رکورددار کسب بیشترین سود در بازه یکساله، دو ساله و پنج ساله می باشد؟ این سوال را برای بخش های مختلف مورد مطالعه قرار دهید و رکورددار را معرفی کنید. (برای این کار به ستون sector داده constituents مراجعه کنید.) برای هر دو قسمت نمودار سود ده شرکت و یا بخش برتر را رسم نمایید.
 </p>
 
+<p dir="RTL">
+برای این سوال، درصد سود را به صورت سالیانه و دوساله و پنج ساله حساب می کنیم و بیشترین درصد سود را نمایش می دهیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+sp500 <- sp500 %>% inner_join(sector, by = c("stock_name" = "Symbol"))
+
+# Annual
+stock_yearly <- full_join(
+  sp500 %>% group_by(stock_name, Year) %>% arrange(Month, Day) %>% slice(1) %>% summarise(Start = Close, Sector = Sector),
+  sp500 %>% group_by(stock_name, Year) %>% arrange(-Month, -Day) %>% slice(1) %>% summarise(End = Close, Sector = Sector),
+  by = c("stock_name", "Year", "Sector")
+) %>% select(Year, stock_name, Start, End, Sector)
+
+stock_yearly <- stock_yearly %>% mutate(profit = 100*((End - Start)/Start)) %>% ungroup()
+```
+
+<p dir="RTL">
+بیشتر سود در یک سال)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+knitr::kable(stock_yearly %>% arrange(desc(profit)) %>% slice(1))
+```
+
+<p dir="RTL">
+بیشترین سود سالانه در هر بخش)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+knitr::kable(stock_yearly %>% group_by(Sector) %>% arrange(desc(profit)) %>% slice(1))
+
+stock_yearly %>% group_by(Sector) %>% arrange(desc(profit)) %>% slice(1) %>% 
+  hchart(type = "column", hcaes(x = stock_name, y = profit, group = Sector)) %>% 
+  hc_yAxis(title = list(text = "Profit Percentage")) %>% 
+  hc_xAxis(type = 'category', title = list(categories = stock_yearly$stock_name, text = "Stock Name")) %>% 
+  hc_title(text = "Top Annual Profitable Stocks", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_flat())
+```
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# Every Two Year
+stock_yearly$two_year_profit = 0
+
+for (i in name) {
+  stock = stock_yearly %>% filter(stock_name == i)
+  for (j in 1:nrow(stock)) {
+    if (j != 1) {
+      # profit for other years!
+      stock_yearly[stock_yearly$stock_name == i & stock_yearly$Year == stock[j,]$Year,]$two_year_profit = 100*((stock[j,]$End - stock[j - 1,]$Start)/stock[j - 1,]$Start)
+    }
+  }
+}
+```
+
+<p dir="RTL">
+بیشترین سود در بازه ی دو ساله)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+knitr::kable(stock_yearly %>% arrange(desc(two_year_profit)) %>% slice(1))
+```
+
+<p dir="RTL">
+بیشترین سود در هر بخش در بازه ی دو ساله)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+knitr::kable(stock_yearly %>% group_by(Sector) %>% arrange(desc(two_year_profit)) %>% slice(1))
+
+stock_yearly %>% group_by(Sector) %>% arrange(desc(two_year_profit)) %>% slice(1) %>% 
+  hchart(type = "column", hcaes(x = stock_name, y = two_year_profit, group = Sector)) %>% 
+  hc_yAxis(title = list(text = "Profit Percentage")) %>% 
+  hc_xAxis(type = 'category', title = list(categories = stock_yearly$stock_name, text = "Stock Name")) %>% 
+  hc_title(text = "Top Two Year Profitable Stocks", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_538())
+```
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# Every Five Year
+stock_yearly$five_year_profit = 0
+
+for (i in name) {
+  stock = stock_yearly %>% filter(stock_name == i)
+  for (j in 1:nrow(stock)) {
+    if (j > 4) {
+      # profit for other years!
+      stock_yearly[stock_yearly$stock_name == i & stock_yearly$Year == stock[j,]$Year,]$five_year_profit = 100*((stock[j,]$End - stock[j - 4,]$Start)/stock[j - 4,]$Start)
+    }
+  }
+}
+```
+
+<p dir="RTL">
+بیشترین سود در بازه ی پنج ساله)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+knitr::kable(stock_yearly %>% arrange(desc(five_year_profit)) %>% slice(1))
+```
+
+<p dir="RTL">
+بیشترین سود در هر بخش در بازه ی پنج ساله)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+knitr::kable(stock_yearly %>% group_by(Sector) %>% arrange(desc(five_year_profit)) %>% slice(1))
+
+stock_yearly %>% group_by(Sector) %>% arrange(desc(five_year_profit)) %>% slice(1) %>% 
+  hchart(type = "column", hcaes(x = stock_name, y = five_year_profit, group = Sector)) %>% 
+  hc_yAxis(title = list(text = "Profit Percentage")) %>% 
+  hc_xAxis(type = 'category', title = list(categories = stock_yearly$stock_name, text = "Stock Name")) %>% 
+  hc_title(text = "Top Five Year Profitable Stocks", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_elementary())
+```
+
 ***
 
 <p dir="RTL">
 ۲. یک اعتقاد خرافی می گوید خرید سهام در روز سیزدهم ماه زیان آور است. این گزاره را مورد ارزیابی قرار دهید.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
 </p>
 
 ***
@@ -110,11 +234,26 @@ AA+
 ۴. شاخص AAPL که نماد شرکت اپل است را در نظر بگیرید. با استفاده از رگرسیون خطی یک پیش کننده قیمت شروع (open price) بر اساس k روز قبل بسازید. بهترین انتخاب برای k چه مقداری است؟ دقت پیش بینی شما چقدر است؟
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
+</p>
 
 ***
 
 <p dir="RTL">
 ۵. بر روی داده های قیمت شروع شرکت ها الگوریتم pca را اعمال کنید. نمودار تجمعی درصد واریانس بیان شده در مولفه ها را رسم کنید. سه مولفه اول چند درصد از واریانس را تبیین می کند؟
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
 </p>
 
 ***
@@ -123,10 +262,26 @@ AA+
 ۶. برای هر نماد اطلاعات بخش مربوطه را از داده constituents استخراج نمایید. برای هر بخش میانگین روزانه قیمت شروع شرکت های آن را محاسبه کنید. سپس با استفاده از میانگین به دست آمده  داده ایی با چند ستون که هر ستون یک بخش و هر سطر یک روز هست بسازید. داده مربوط را با داده شاخص های اقتصادی ادغام کنید. بر روی این داده pca بزنید و نمودار biplot آن را تفسیر کنید.
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
+</p>
+
 ***
 
 <p dir="RTL">
 ۷. روی همه اطلاعات (OHLCV) سهام اپل الگوریتم PCA را اعمال کنید. سپس از مولفه اول برای پیش بینی قیمت شروع سهام در روز آینده استفاده کنید. به سوالات سوال ۴ پاسخ دهید. آیا استفاده از مولفه اول نتیجه بهتری نسبت به داده open price برای پیش بینی قیمت دارد؟
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
 </p>
 
 ***
@@ -136,15 +291,39 @@ AA+
 با استفاده از ده مولفه اول سوال پنج آیا می توانید سود و ضرر شاخص s&p500 را برای روز آينده پیش بینی کنید؟ از یک مدل رگرسیون لاجستیک استفاده کنید. درصد خطای پیش بینی را به دست آورید.
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
+</p>
+
 ***
 
 <p dir="RTL"> 
 ۹. عکسی که در ابتدای متن آمده را در نظر بگیرید. با استفاده از pca عکس را فشرده کنید. سپس نمودار حجم عکس فشرده بر حسب تعداد مولفه اصلی را  رسم کنید. بهترین انتخاب برای انتخاب تعداد مولفه ها در جهت فشرده سازی چه عددی است؟
 </p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
+</p>
+
 ***
 
 <p dir="RTL"> 
 ۱۰. پنج ایده جالبی که روی داده های مالی بالا می توانستیم پیاده کنیم را بیان کنید. (ایده کافی است نیازی به محاسبه بر روی داده نیست.)
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
 </p>
 
