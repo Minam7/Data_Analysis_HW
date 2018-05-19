@@ -1,7 +1,7 @@
 ---
 title: "Tenth Week: Principal Component Analysis and Factor Analysis"
 subtitle: "PCA Stock, image, ..."
-author: "Mina Moosavi - 93106788"
+author: "Mina Moosavi - 93106788ر"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
@@ -15,6 +15,48 @@ output:
 
 > <p dir="RTL"> 
 با استفاده از داده های OHLCV شرکت های تشکیل دهنده شاخص s&p500 و همچنین داده مربوط به شاخص های اقتصادی به سوالات زیر پاسخ دهید.
+</p>
+
+***
+<p dir="RTL">
+بارگزاری داده ها و کتابخانه ها:
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(readr)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(highcharter)
+
+name = list.files("data/stock_dfs/") %>% str_replace(".csv", "")
+textpath = list.files("data/stock_dfs/", full.names = T)
+
+.data <- read_csv(textpath[1]) %>% select(Date, Open, Close, Volume)
+.data$stock_name = name[1]
+sp500 = .data
+
+for( i in 2:length(name)){
+  .data <- read_csv(textpath[i]) %>% select(Date, Open, Close, Volume)
+  .data$stock_name = name[i]
+  sp500 = bind_rows(sp500, .data)
+}
+
+sp500 <- sp500 %>% mutate(
+                 Year = as.numeric(format(Date, format = "%Y")),
+                 Month = as.numeric(format(Date, format = "%m")),
+                 Day = as.numeric(format(Date, format = "%d")),
+                 Open = as.numeric(Open), 
+                 Close = as.numeric(Close), 
+                 Volume = as.numeric(Volume))
+
+indexes <- read_csv("data/indexes.csv")
+
+sector <- read_csv("data/constituents.csv")
+```
+
+<p dir="RTL">
+برای ادغام داده های شرکت های مختلف در یک فایل، آن ها را به صورت افقی به یکدیگر اضافه می کنیم و معیار نام شرکت به داده ها اضافه می کنیم. در نهایت نیز تاریخ را به معیارهای آن تجزیه می کنیم.
 </p>
 
 ***
@@ -33,6 +75,33 @@ output:
 
 <p dir="RTL">
 ۳. رکورد بیشترین گردش مالی در تاریخ بورس برای چه روزی بوده است و چرا!!!
+</p>
+
+<p dir="RTL">
+معیار گردش مالی را مجموع تعداد سهام مبادله شده ی تمامی شرکت ها در نظر میگیریم. در این صورت خروجی به شکل زیر می شود:
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+max_flow <- sp500 %>%
+  group_by(Date) %>% 
+  summarise(flow = sum(Volume)) %>% 
+  arrange(desc(flow)) %>% slice(1:4)
+
+knitr::kable(max_flow)
+```
+
+<p dir="RTL">
+همانطور که مشاهده می کنیم، بیشترین معامله در روز ۸ اکتبر سال ۲۰۰۸ بوده است که این روز در دوران [رکود اقتصادی آمریکا](https://en.wikipedia.org/wiki/Stock_market_crash#Crash_of_2008%E2%80%932009)
+قرار دارد. علت رخداد این رکود از بین رفتن حباب ۸ تریلیون دلاری مسکن بود که با عواملی همچون [مشکلات بانکی](https://www.thebalance.com/subprime-mortgage-crisis-effect-and-timeline-3305745)
+و رد لایحه کمک بانکی از طرف کنگره تشدید شد.
+<br>
+البته همانطور که مشاهده می کنیم، بیشترین سقوط پس از آن نیز در تاریخ ۸ آگوست سال ۲۰۱۱ بوده است. علت وقوع این سقوط نیز این بود که 
+s&p
+میزان اعتبار بازار آمریکا را از 
+AAA 
+به 
+AA+
+تنزل داد.
 </p>
 
 ***

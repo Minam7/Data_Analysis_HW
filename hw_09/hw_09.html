@@ -10,13 +10,51 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="author" content="Mina Moosavi - 93106788" />
+<meta name="author" content="Mina Moosavi - 93106788ر" />
 
 
 <title>Tenth Week: Principal Component Analysis and Factor Analysis</title>
 
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 
 
@@ -32,8 +70,8 @@
 <section class="page-header">
 <h1 class="title toc-ignore project-name">Tenth Week: Principal Component Analysis and Factor Analysis</h1>
 <h3 class="subtitle project-tagline">PCA Stock, image, …</h3>
-<h4 class="author project-author">Mina Moosavi - 93106788</h4>
-<h4 class="date project-date">2018-05-18 14:42:16</h4>
+<h4 class="author project-author">Mina Moosavi - 93106788ر</h4>
+<h4 class="date project-date">2018-05-19 10:18:44</h4>
 </section>
 
 
@@ -49,6 +87,43 @@
 </blockquote>
 <hr />
 <p dir="RTL">
+بارگزاری داده ها و کتابخانه ها:
+</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readr)
+<span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(stringr)
+<span class="kw">library</span>(ggplot2)
+<span class="kw">library</span>(highcharter)
+
+name =<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;data/stock_dfs/&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">str_replace</span>(<span class="st">&quot;.csv&quot;</span>, <span class="st">&quot;&quot;</span>)
+textpath =<span class="st"> </span><span class="kw">list.files</span>(<span class="st">&quot;data/stock_dfs/&quot;</span>, <span class="dt">full.names =</span> T)
+
+.data &lt;-<span class="st"> </span><span class="kw">read_csv</span>(textpath[<span class="dv">1</span>]) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(Date, Open, Close, Volume)
+.data<span class="op">$</span>stock_name =<span class="st"> </span>name[<span class="dv">1</span>]
+sp500 =<span class="st"> </span>.data
+
+<span class="cf">for</span>( i <span class="cf">in</span> <span class="dv">2</span><span class="op">:</span><span class="kw">length</span>(name)){
+  .data &lt;-<span class="st"> </span><span class="kw">read_csv</span>(textpath[i]) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(Date, Open, Close, Volume)
+  .data<span class="op">$</span>stock_name =<span class="st"> </span>name[i]
+  sp500 =<span class="st"> </span><span class="kw">bind_rows</span>(sp500, .data)
+}
+
+sp500 &lt;-<span class="st"> </span>sp500 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(
+                 <span class="dt">Year =</span> <span class="kw">as.numeric</span>(<span class="kw">format</span>(Date, <span class="dt">format =</span> <span class="st">&quot;%Y&quot;</span>)),
+                 <span class="dt">Month =</span> <span class="kw">as.numeric</span>(<span class="kw">format</span>(Date, <span class="dt">format =</span> <span class="st">&quot;%m&quot;</span>)),
+                 <span class="dt">Day =</span> <span class="kw">as.numeric</span>(<span class="kw">format</span>(Date, <span class="dt">format =</span> <span class="st">&quot;%d&quot;</span>)),
+                 <span class="dt">Open =</span> <span class="kw">as.numeric</span>(Open), 
+                 <span class="dt">Close =</span> <span class="kw">as.numeric</span>(Close), 
+                 <span class="dt">Volume =</span> <span class="kw">as.numeric</span>(Volume))
+
+indexes &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;data/indexes.csv&quot;</span>)
+
+sector &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;data/constituents.csv&quot;</span>)</code></pre></div>
+<p dir="RTL">
+برای ادغام داده های شرکت های مختلف در یک فایل، آن ها را به صورت افقی به یکدیگر اضافه می کنیم و معیار نام شرکت به داده ها اضافه می کنیم. در نهایت نیز تاریخ را به معیارهای آن تجزیه می کنیم.
+</p>
+<hr />
+<p dir="RTL">
 ۱. چه شرکتی رکورددار کسب بیشترین سود در بازه یکساله، دو ساله و پنج ساله می باشد؟ این سوال را برای بخش های مختلف مورد مطالعه قرار دهید و رکورددار را معرفی کنید. (برای این کار به ستون sector داده constituents مراجعه کنید.) برای هر دو قسمت نمودار سود ده شرکت و یا بخش برتر را رسم نمایید.
 </p>
 <hr />
@@ -58,6 +133,44 @@
 <hr />
 <p dir="RTL">
 ۳. رکورد بیشترین گردش مالی در تاریخ بورس برای چه روزی بوده است و چرا!!!
+</p>
+<p dir="RTL">
+معیار گردش مالی را مجموع تعداد سهام مبادله شده ی تمامی شرکت ها در نظر میگیریم. در این صورت خروجی به شکل زیر می شود:
+</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">max_flow &lt;-<span class="st"> </span>sp500 <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(Date) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">flow =</span> <span class="kw">sum</span>(Volume)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(flow)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">slice</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">4</span>)
+
+knitr<span class="op">::</span><span class="kw">kable</span>(max_flow)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Date</th>
+<th align="right">flow</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2008-10-10</td>
+<td align="right">8896471300</td>
+</tr>
+<tr class="even">
+<td align="left">2011-08-08</td>
+<td align="right">7661453600</td>
+</tr>
+<tr class="odd">
+<td align="left">2008-09-18</td>
+<td align="right">7300849700</td>
+</tr>
+<tr class="even">
+<td align="left">2011-08-09</td>
+<td align="right">7284874900</td>
+</tr>
+</tbody>
+</table>
+<p dir="RTL">
+همانطور که مشاهده می کنیم، بیشترین معامله در روز ۸ اکتبر سال ۲۰۰۸ بوده است که این روز در دوران <a href="https://en.wikipedia.org/wiki/Stock_market_crash#Crash_of_2008%E2%80%932009">رکود اقتصادی آمریکا</a> قرار دارد. علت رخداد این رکود از بین رفتن حباب ۸ تریلیون دلاری مسکن بود که با عواملی همچون <a href="https://www.thebalance.com/subprime-mortgage-crisis-effect-and-timeline-3305745">مشکلات بانکی</a> و رد لایحه کمک بانکی از طرف کنگره تشدید شد. <br> البته همانطور که مشاهده می کنیم، بیشترین سقوط پس از آن نیز در تاریخ ۸ آگوست سال ۲۰۱۱ بوده است. علت وقوع این سقوط نیز این بود که s&amp;p میزان اعتبار بازار آمریکا را از AAA به AA+ تنزل داد.
 </p>
 <hr />
 <p dir="RTL">
