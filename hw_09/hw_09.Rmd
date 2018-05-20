@@ -1,7 +1,7 @@
 ---
 title: "Tenth Week: Principal Component Analysis and Factor Analysis"
 subtitle: "PCA Stock, image, ..."
-author: "Mina Moosavi - 93106788ر"
+author: "Mina Moosavi - 93106788"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
@@ -421,12 +421,93 @@ Long Interest Rate
 ۷. روی همه اطلاعات (OHLCV) سهام اپل الگوریتم PCA را اعمال کنید. سپس از مولفه اول برای پیش بینی قیمت شروع سهام در روز آینده استفاده کنید. به سوالات سوال ۴ پاسخ دهید. آیا استفاده از مولفه اول نتیجه بهتری نسبت به داده open price برای پیش بینی قیمت دارد؟
 </p>
 
-```{r, message=FALSE, warning=FALSE, comment=NA}
+<p dir="RTL">
+برای حل سوال ابتدا داده ی 
+AAPL 
+را خوانده و سپس برای آن 
+pca 
+را محاسبه می کنیم و در نهایت مولفه ی اول 
+pca 
+را به داده ی سوال چهار به صورت ستونی(با یک ترتیب) اضافه می کنیم. در پایان مراحل سوال چهار را محاسبه می کنیم.
+</p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+appl_ohlcv <- read_csv("data/stock_dfs/AAPL.csv") %>% arrange(Date) %>% select(-Date)
+appl <- appl %>% arrange(Date)
+
+appl_pca = prcomp(appl_ohlcv, scale. = TRUE)
+appl_pca1 = appl_pca$x %>% as.data.frame() %>% select(PC1)
+
+appl$pca = appl_pca1$PC1
+
+# k = 1
+lm = lm(data = appl, formula = pca~k1)
+ans <- data.frame(1, summary(lm)$r.squared)
+names(ans)<-c("k","R Squared")
+
+# k = 2
+lm = lm(data = appl, formula = pca~k1+k2)
+ans_1 <- data.frame(2, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 3
+lm = lm(data = appl, formula = pca~k1+k2+k3)
+ans_1 <- data.frame(3, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 4
+lm = lm(data = appl, formula = pca~k1+k2+k3+k4)
+ans_1 <- data.frame(4, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 5
+lm = lm(data = appl, formula = pca~k1+k2+k3+k4+k5)
+ans_1 <- data.frame(5, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 6
+lm = lm(data = appl, formula = pca~k1+k2+k3+k4+k5+k6)
+ans_1 <- data.frame(6, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 7
+lm = lm(data = appl, formula = pca~k1+k2+k3+k4+k5+k6+k7)
+ans_1 <- data.frame(7, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 8
+lm = lm(data = appl, formula = pca~k1+k2+k3+k4+k5+k6+k7+k8)
+ans_1 <- data.frame(8, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 9
+lm = lm(data = appl, formula = pca~k1+k2+k3+k4+k5+k6+k7+k8+k9)
+ans_1 <- data.frame(9, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+# k = 10
+lm = lm(data = appl, formula = pca~k1+k2+k3+k4+k5+k6+k7+k8+k9+k10)
+ans_1 <- data.frame(10, summary(lm)$r.squared)
+names(ans_1)<-c("k","R Squared")
+ans <- ans %>% rbind(ans_1)
+
+knitr::kable(ans)
 ```
 
 <p dir="RTL">
-
+همانطور که مشاهده می کنیم، دقت ما نسبت به سوال ۴ یک درصد کاهش یافته است. پس مولفه ی اول 
+pca 
+نسبت به 
+open price 
+نتیجه ی بهتری نمی دهد.
 </p>
 
 ***
@@ -436,12 +517,68 @@ Long Interest Rate
 با استفاده از ده مولفه اول سوال پنج آیا می توانید سود و ضرر شاخص s&p500 را برای روز آينده پیش بینی کنید؟ از یک مدل رگرسیون لاجستیک استفاده کنید. درصد خطای پیش بینی را به دست آورید.
 </p>
 
-```{r, message=FALSE, warning=FALSE, comment=NA}
+<p dir="RTL">
+برای حل این سوال، سود نسبی را برابر با نسبت اختلاف
+sp500
+امروز و روز قبل به 
+sp500 
+روز قبل میگیریم.
+</p>
 
+```{r, message=FALSE, warning=FALSE, comment=NA}
+indexes <- indexes %>% mutate(profit = 100*(SP500 - lag(SP500))/lag(SP500))
+
+indexes %>% 
+  ggplot(aes(profit, fill=..count..)) + geom_histogram(binwidth = 1) +
+  scale_fill_gradient(low="darkgreen", high="gold") + 
+  ggtitle("SP500 Profit Distribution")
 ```
 
 <p dir="RTL">
+همانطور که در نمودار می بینیم، سود نسبی شاخص
+SP500 
+حول صفر توزیع نرمال دارد.
+</p>
 
+<p dir="RTL">
+برای حل ادامه ی سوال، متغیری به نام سودوزیان تعریف می کنیم که در صورتی که سود نسبی بیشتر از صفر بود آن را ۱ (به معنی سود) و در غیر این صورت آن را صفر(به معنی ضرر ) می گذاریم. سپس از داده های سوال ۵ ده مولفه ی اول 
+pca 
+را انتخاب کرده و آن را با داده ها مرج می کنیم. در نهایت نیز با کمک
+glm 
+و خانواده ی 
+binomial
+مدل را لرن می کنیم.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+indexes <- indexes %>% mutate(loss_gain = ifelse(profit > 0, 1, 0))
+
+pcas <- stock_pca$x %>% as.data.frame() %>% select(PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10)
+
+# indexes_pca <- sp500_pca %>% merge(pcas) %>% merge(indexes %>% merge(sp500_pca))
+indexes_pca <- indexes %>% merge(sp500_pca, by = "Date") %>% merge(pcas)
+
+glm = glm(data = indexes_pca, formula = loss_gain ~ PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10, family = binomial(link = 'logit'))
+summary(glm)
+
+indexes_pca$prediction  = predict(glm, newdata = indexes_pca, type = "response")
+indexes_pca <- indexes_pca %>% mutate(get = ifelse(prediction < 0.5, 0, 1))
+P <- indexes_pca %>% filter(loss_gain == 1) %>% nrow()
+N <- indexes_pca %>% filter(loss_gain == 0) %>% nrow()
+TP <- indexes_pca %>% filter(loss_gain == 1 & get == 1) %>% nrow()
+TN <- indexes_pca %>% filter(loss_gain == 0 & get == 0) %>% nrow()
+ACC <- (TP + TN)/(P + N)
+cat("Accuracy: ", ACC)
+```
+
+<p dir="RTL">
+همانطور که خروجی 
+glm
+نشان می دهد، هیچ کدام از مولفه های 
+pca 
+تاثیری در پیشبینی سود و زیان ندارد. البته باید دقت داشته باشیم که مشکل اصلی این سوال داده های آن است که در 
+PCA 
+تنها ۱۲۶ داده باقی می ماند که در نتیجه ی مرج با سوال پنج داده ی بسیار کمی باقی می ماند. اما مشاهده می کنیم که با این وجود، دقت مدل ما ۷۵ درصد است.
 </p>
 
 ***
