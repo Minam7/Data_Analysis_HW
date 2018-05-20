@@ -1,11 +1,11 @@
-# make data ready
+# data preparation
 .data <- read_csv(textpath[1]) %>% select(Date, Open)
-colnames(.data) =c("Date", name[1])
+colnames(.data) = c("Date", name[1])
 sp500_pca = .data
 
 for(i in 2:length(name)){
   .data <- read_csv(textpath[i]) %>% select(Date, Open)
-  colnames(.data) =c("Date", name[i])
+  colnames(.data) = c("Date", name[i])
   sp500_pca = merge(sp500_pca, .data)
 }
 
