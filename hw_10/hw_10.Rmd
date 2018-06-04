@@ -1,7 +1,7 @@
 ---
 title: "Cluster Analysis"
 subtitle: "WDI Indicators"
-author: "student name"
+author: "Mina Moosavifar - 93106788"
 date: "`r Sys.time()`"
 output:
   prettydoc::html_pretty:
