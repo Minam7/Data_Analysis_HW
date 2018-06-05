@@ -20,10 +20,49 @@ output:
 ***
 
 <p dir="RTL">
+بارگزاری داده ها و کتابخانه ها:
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(readr)
+library(dplyr)
+library(ggmap)
+library(highcharter)
+library(stringr)
+
+earth_q <- read_rds("data/historical_web_data_26112015.rds")
+
+```
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
+</p>
+***
+
+<p dir="RTL">
 ۱. با استفاده از داده های
 historical_web_data_26112015.rds 
 و استفاده از نمودار پراکنش سه بعدی بسته plotly نمودار طول، عرض و عمق زلزله ها را رسم نمایید. علاوه بر آن بزرگی هر نقطه را برابر بزرگی زمین لرزه قرار دهید.
 </p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(plotly)
+
+
+p <- plot_ly(data = earth_q, x = ~Latitude, y = ~Longitude, z = ~Depth, size = ~Magnitude,
+             marker = list(color = ~Magnitude, symbol = 'circle', sizemode = 'diameter', colorscale = c('#FFE1A1', '#683531'), showscale = TRUE), sizes = c(0.5, 7.8),
+             text = ~paste('Province:', Province, '<br>City:', City, '<br>Magnitude:', Magnitude)) %>%
+  add_markers() %>%
+  layout(scene = list(title = 'Iran Earthquakes between Sep. to Nov. 2015',
+                      xaxis = list(title = 'Latitude', range = c(23, 40)),
+                      yaxis = list(title = 'Longitude', range = c(40, 71)),
+                      zaxis = list(title = 'Depth', range = c(0, 162))))
+p
+```
 
 ***
 
@@ -31,11 +70,27 @@ historical_web_data_26112015.rds
 ۲. پویانمایی سونامی های تاریخی را بر حسب شدت بر روی نقشه زمین رسم نمایید.(از داده زلزله های بزرگ استفاده نمایید.)
 </p>
 
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
 ***
 
 <p dir="RTL">
 ۳. نمودار چگالی دو بعدی زلزله های تاریخی ایران را رسم کنید.( از داده iran_earthquake.rds و لایه stat_density_2d استفاده نمایید).
 </p>
+
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
 
 ***
 
@@ -43,6 +98,13 @@ historical_web_data_26112015.rds
 ۴. احتمال اینکه در ایران در پنج سال آینده زلزله به بزرگی هفت ریشتر رخ دهد را محاسبه کنید. (از احتمال شرطی استفاده کنید.)
 </p>
 
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
 
 ***
 
@@ -54,11 +116,27 @@ historical_web_data_26112015.rds
 <img  src="images/jvector.png"  align = 'center'>
 </div>
 
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
 ***
 
 <p dir="RTL">
 ۶. با استفاده از داده لرزه های بزرگ و به وسیله طول، عرض، شدت، عمق مدلی برای پیش بینی تعداد کشته های زلزله بیابید.
 </p>
+
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
 
 ***
 
@@ -66,11 +144,27 @@ historical_web_data_26112015.rds
 ۷. با استفاده از داده worldwide.csv به چند سوال زیر پاسخ دهید. تحقیق کنید آیا می توان از پیش لرزه، زلزله اصلی را پیش بینی کرد؟
 </p>
 
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
 ***
 
 <p dir="RTL">
 ۸. گزاره " آیا شدت زلزله به عمق آن بستگی دارد" را تحقیق کنید؟ (طبیعتا از آزمون فرض باید استفاده کنید.)
 </p>
+
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
 
 ***
 
@@ -78,9 +172,25 @@ historical_web_data_26112015.rds
 ۹. میانگین سالانه زلزله ها را بر حسب کشور به دست آورید. آیا میتوان دلیلی در تایید یا رد تئوری هارپ ارائه کرد.
 </p>
 
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
 ***
 
 <p dir="RTL"> 
 ۱۰. سه حقیقت جالب در مورد زلزله بیابید.
 </p>
+
+<p dir="RTL">
+
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
 
