@@ -176,11 +176,43 @@ cat("Probability of earthquake in 5 years is", p)
 </div>
 
 <p dir="RTL">
-
+برای حل این سوال ابتدا داده های 
+NA 
+را حذف می کنیم، سپس میانگین و مجموع تلفات زلزله ها را بدست می آوریم. برای نمایش کشورها بر روی نقشه نیاز است که نام کشورها را به نام کوتاه استاندارد آن ها تبدیل کنیم. به همین دلیل از کتابخانه ی 
+countrycode 
+استفاده می کنیم. سپس نمودار گرمایی را یک بار برای تعداد کشته ها و یک بار برای میانگین تعداد کشته ها توسط کتابخانه ی 
+rworldmap 
+می کشیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+library(rworldmap)
+library(countrycode)
 
+disaster_sum <- read_delim("data/disaster.txt", "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
+  rename(lat = LATITUDE,long = LONGITUDE, magnit = INTENSITY,country = COUNTRY,year = YEAR, death=TOTAL_DEATHS) %>% 
+  dplyr::select(lat, long, magnit, country, year, death)
+
+disaster_sum = na.omit(disaster_sum)
+disaster_sum <- disaster_sum %>% group_by(country) %>% summarise(fatality_sum = sum(death), fatality_mean = mean(death))
+
+disaster_sum$country <- countrycode(disaster_sum$country, "country.name", "iso3c", warn = TRUE, nomatch = NA,
+                                    custom_dict = NULL, custom_match = NULL, origin_regex = FALSE)
+
+heatMap <- joinCountryData2Map(disaster_sum, joinCode = "ISO3",
+                              nameJoinColumn = "country")
+
+mapCountryData(heatMap, nameColumnToPlot = "fatality_sum", 
+               mapTitle="Earthquakes total fatality", oceanCol=gray(0.3),
+               colourPalette=c("cadetblue1","cadetblue3", "deepskyblue2", "deepskyblue3", "deepskyblue4", "dodgerblue4", "navy"), missingCountryCol = "white")
+
+
+heatMap <- joinCountryData2Map(disaster_sum, joinCode = "ISO3",
+                               nameJoinColumn = "country")
+
+mapCountryData(heatMap, nameColumnToPlot = "fatality_mean", 
+               mapTitle="Earthquakes fatality rate", oceanCol=gray(0.3),
+               colourPalette=c("cadetblue1","cadetblue3", "deepskyblue2", "deepskyblue3", "deepskyblue4", "dodgerblue4", "navy"), missingCountryCol = "white")
 ```
 
 ***
