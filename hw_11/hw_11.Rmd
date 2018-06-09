@@ -127,7 +127,7 @@ p
 </p>
 
 <p dir="RTL">
-
+برای این سوال احتمال اینکه در پنج آینده زلزله ای بیشتر از ۷ ریشتر بیاید، به شرط اینکه دو سال زلزله ی بیشتر از ۷ ریشتر رخ نداده باشد را بررسی می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
@@ -162,6 +162,8 @@ after_two = after_two / nrow(iran_sig_eq)
 
 p = (after_year)/(after_two)
 cat("Probability of earthquake in 5 years is", p)
+
+
 
 ```
 
