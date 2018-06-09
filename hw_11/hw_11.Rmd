@@ -261,6 +261,7 @@ intercept-only
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+worldwide <- read_csv("data/worldwide.csv")
 
 ```
 
@@ -271,12 +272,22 @@ intercept-only
 </p>
 
 <p dir="RTL">
-
+برای این سوال از تست کوریلیشن و تست استقلال 
+chi 
+استفاده می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+cor.test(worldwide$depth, worldwide$mag, method = 'spearman')
 
+eq_matrix <- worldwide %>% select(depth, mag) %>% filter(depth > 0) %>% as.matrix() 
+
+chisq.test(eq_matrix)
 ```
+
+<p dir="RTL">
+در تست کوریلیشن مشاهده می کنیم که احتمال اینکه این دو متغیر از دو توزیع غیرمرتبط آمده باشند، صفر است. پس فرض صفر باطل است و این دو متغیر به یکدیگر وابسته هستند. همچنین در تست استقلال نیز مشاهده می کنیم که احتمال استقلال دو متغیر بسیار کم بوده و در نتیجه فرض صفر باطل است و این دو متغیر از یکدیگر مستقل نیستند. پس فرض عدم ارتباط عمق و شدت زلزله رد می شود.
+</p>
 
 ***
 
