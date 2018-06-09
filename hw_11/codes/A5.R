@@ -11,6 +11,8 @@ disaster_sum <- disaster_sum %>% group_by(country) %>% summarise(fatality_sum = 
 disaster_sum$country <- countrycode(disaster_sum$country, "country.name", "iso3c", warn = TRUE, nomatch = NA,
                                     custom_dict = NULL, custom_match = NULL, origin_regex = FALSE)
 
+knitr::kable(disaster_sum)
+
 heatMap <- joinCountryData2Map(disaster_sum, joinCode = "ISO3",
                               nameJoinColumn = "country")
 

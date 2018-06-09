@@ -199,6 +199,8 @@ disaster_sum <- disaster_sum %>% group_by(country) %>% summarise(fatality_sum = 
 disaster_sum$country <- countrycode(disaster_sum$country, "country.name", "iso3c", warn = TRUE, nomatch = NA,
                                     custom_dict = NULL, custom_match = NULL, origin_regex = FALSE)
 
+knitr::kable(disaster_sum)
+
 heatMap <- joinCountryData2Map(disaster_sum, joinCode = "ISO3",
                               nameJoinColumn = "country")
 
@@ -296,12 +298,54 @@ chisq.test(eq_matrix)
 </p>
 
 <p dir="RTL">
-
+برای حل این سوال، ابتدا می بایست کشور محل رخداد زلزله را بدست بیاوریم. برای این کار از نقاط نقشه ی 
+rworldmap 
+استفاده می کنیم. سپس بر اسا کشور و سال گروهبندی کرده و تعداد زلزله ها و میانگین شدت زلزله ها را بدست می آوریم. در نهایت نمودار موزاییک زلزله ها را نمایش می دهیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+library(sp)
 
+coords2country = function(points)
+{  
+  countriesSP <- getMap(resolution='high')
+  
+  #setting CRS directly to that from rworldmap
+  pointsSP = SpatialPoints(points, proj4string=CRS(proj4string(countriesSP)))  
+  # use 'over' to get indices of the Polygons object containing each point 
+  indices = over(pointsSP, countriesSP)
+  
+  indices$ISO3 # returns the ISO3 code 
+}
+
+s <- worldwide %>% select(longitude, latitude)
+s$country <- coords2country(s)
+s <- s %>% select(country)
+
+worldwide <- bind_cols(worldwide, s)
+
+worldwide <- worldwide %>% filter(!is.na(country)) %>% 
+  mutate(year = as.numeric(format(time, format = "%Y")))
+
+worldwide_sum <- worldwide %>% group_by(year, country) %>% 
+  summarise(count = n(), mean_mag = mean(mag), mean_depth = mean(depth))
+
+hchart(worldwide_sum %>% filter(year == 2015), "treemap", hcaes(x = country, value = count, color = mean_mag)) %>% 
+  hc_title(text = "2015 Earthquakes", style = list(fontWeight = "bold"))
+
+hchart(worldwide_sum %>% filter(year == 2016), "treemap", hcaes(x = country, value = count, color = mean_mag)) %>% 
+  hc_title(text = "2016 Earthquakes", style = list(fontWeight = "bold"))
+
+hchart(worldwide_sum %>% filter(year == 2017), "treemap", hcaes(x = country, value = count, color = mean_mag)) %>% 
+  hc_title(text = "2017 Earthquakes", style = list(fontWeight = "bold"))
+
+hchart(worldwide_sum %>% filter(year == 2018), "treemap", hcaes(x = country, value = count, color = mean_mag)) %>% 
+  hc_title(text = "2018 Earthquakes", style = list(fontWeight = "bold"))
 ```
+
+<p dir="RTL">
+پروژه ی هارپ از سال ۲۰۱۵ منحل شده است. در صورتی که این پروژه تاثیر زیادی بر روی زلزله داشته باشد، باید با کاهش چشمگیر زلزله مواجه باشیم. اما مشاهده می کنیم که زلزله ها افزایش داشته اند. همچنین روند واضحی در این میان دیده نمی شود. در نتیجه نمی توانیم در مورد تاثیر پروژه ی هارپ نظری دهیم.
+</p>
 
 ***
 
