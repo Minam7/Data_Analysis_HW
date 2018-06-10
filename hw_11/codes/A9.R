@@ -18,8 +18,7 @@ s <- s %>% select(country)
 
 worldwide <- bind_cols(worldwide, s)
 
-worldwide <- worldwide %>% filter(!is.na(country)) %>% 
-  mutate(year = as.numeric(format(time, format = "%Y")))
+worldwide <- worldwide %>% filter(!is.na(country))
 
 worldwide_sum <- worldwide %>% group_by(year, country) %>% 
   summarise(count = n(), mean_mag = mean(mag), mean_depth = mean(depth))

@@ -261,13 +261,51 @@ intercept-only
 </p>
 
 <p dir="RTL">
-
+برای حل این سوال، ابتدا از روی زمان زلزله، سال و ماه و روز وقوع زلزله را بدست می آوریم. سپس از روی محل وقوع زلزله، ناحیه ی وقوع زلزله(همانند کشور یا ایالت) را بدست می آوریم. سپس در نظر میگیریم که زلزله هایی که در یک محل و در یک ماه رخ می دهند، به یکدیگر مربوط هستند.(البته این روش خطایی برای زلزله های میان ماه ها دارد.) سپس باید پیش لرزه، پس لرزه و زلزله ی اصلی را تعیین کنیم. برای این موضوع زلزله ای که بیشتر شدت را دارد زلزله ی اصلی در نظر میگیریم. برای پیاده سازی این موضوع، بر اساس ناحیه و سال و ماه گروه بندی کرده و سپس شدت بیشترین زلزله و زمان وقوع آن را بدست می آوریم. حال اگر زلزله ای شدت کمتری از زلزله ی اصلی داشته باشد و پیش از زلزله ی اصلی رخ دهد، پیش لرزه است و اگر شدت کمتری از زلزله ی اصلی داشته باشد و پس از زلزله ی اصلی رخ دهد پس لرزه است.(در کد به پیش لرزه عدد ۱ و به پس لرزه عدد ۱- نسبت می دهیم.) در نهایت نیز احتمال اینکه زلزله ی اصلی، پیش لرزه ای داشته باشد را محاسبه می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 worldwide <- read_csv("data/worldwide.csv")
 
+worldwide <- worldwide %>% mutate(year = as.numeric(format(time, format = "%Y")), 
+         month = as.numeric(format(time, format = "%m")), 
+         day = as.numeric(format(time, format = "%d")))
+
+x <- str_split_fixed(worldwide$place, ",", 2) %>% as.data.frame(stringsAsFactors = F)
+colnames(x) = c("", "location")
+x <- x %>% select(location)
+
+worldwide <- bind_cols(worldwide, x)
+
+worldwide_fore <- worldwide %>% filter(location != "") %>% 
+  select(time, year, month, day, latitude, longitude, depth, mag, location) %>% 
+  group_by(year, month, location) %>% arrange(time) %>% 
+  mutate(max_mag = max(mag))
+
+x <- worldwide_fore %>% filter(mag == max_mag)
+x$max_time <- x$time
+
+s <- worldwide_fore %>% filter(mag != max_mag)
+s <- s %>% full_join(x, by = c("max_mag", "month", "year", "location")) %>% 
+  select(time = time.x, year, month, day = day.x, latitude = latitude.x, longitude = longitude.x,
+         depth = depth.x, mag = mag.x, location,max_mag, max_time = time.y)
+
+worldwide_fore_aft <- bind_rows(x, s) %>% filter(!is.na(time)) %>% 
+  mutate(diff = as.numeric(max_time - time, units="days"),
+         state = ifelse(diff > 0, 1, ifelse(
+           diff == 0, 0, -1
+         )))
+
+prob = nrow(worldwide_fore_aft %>% filter(state == 1) %>% 
+              distinct(year, month, location))/
+  nrow(worldwide_fore_aft %>% distinct(year, month, location))
+
+cat("Probability of happening earthquake after foreshock is:", prob)
 ```
+
+<p dir="RTL">
+همانطور که در نتیجه ی بالا می بینیم، در ۵۸ درصد مواقع پیش از زلزله ی اصلی، پیش لرزه رخ می دهد. از آنجایی که این احتمال بالا نیست، نمی توان با قطعیت گفت که زلزله ای که رخ داده پیش لرزه است و حتما زلزله ی اصلی را به همراه دارد.
+</p>
 
 ***
 
