@@ -118,44 +118,27 @@ p
 </p>
 
 <p dir="RTL">
-برای این سوال احتمال اینکه در پنج آینده زلزله ای بیشتر از ۷ ریشتر بیاید، به شرط اینکه دو سال زلزله ی بیشتر از ۷ ریشتر رخ نداده باشد را بررسی می کنیم.
+برای حل این سوال، ابتدا از داده ی
+disaster 
+زلزله های بیشتر از ۷ ریشتر در ایران را بدست می آوریم. سپس بر اساس سال مرتب کرده و فاصله ی هر دو زلزله ی متوالی را بدست می آوریم. در نهایت 
+emperical CDF 
+را برای این داده ها محاسبه می کنیم. آخرین زلزله ی ایران در سال ۲۰۱۷ رخ داده است. پس احتمال شرطی این سوال برابر است با احتمال رخ دادن زلزله در ۵ سال آتی، به شرط آنکه یک سال از آخرین زلزله گذشته باشد. بنا به فرمول احتمال شرطی، این احتمال با احتمال آنکه زلزله در فاصله ی ۶ ساله رخ داده باشد تقسیم بر عدم رخداد زلزله در فاصله ی یک ساله برابر است.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-iran_sig_eq <- iran_eq %>% filter(Mag >= 7) %>% arrange(desc(OriginTime))
+iran_sig_eq <- read_delim("data/disaster.txt", "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
+  rename(lat = LATITUDE,long = LONGITUDE, magnit = INTENSITY,name = COUNTRY,year = YEAR) %>% 
+  dplyr::select(lat, long, magnit, name, year) %>% filter(magnit >= 7 & name == 'IRAN') %>% arrange(year) %>% 
+  mutate(diff = year - lag(year))
 
-last <- iran_sig_eq %>% slice(1)
-diff = as.numeric(Sys.time() -last$OriginTime, units="days")
-diff = diff %/% 365
+cdf_iran <- ecdf(iran_sig_eq$diff)
+summary(cdf_iran)
 
-diff_year = diff + 5
-after_year = 1 # for first one
-for (i in 1:nrow(iran_sig_eq)) {
-  if (i > 1) {
-    differ = as.numeric(iran_sig_eq[i-1,]$OriginTime - iran_sig_eq[i,]$OriginTime, units="days") %/% 365
-    if (differ >= diff_year) {
-      after_year = after_year + 1
-    }
-  }
-}
-after_year = after_year / nrow(iran_sig_eq)
+B = 1 - cdf_iran(1)
+AB = cdf_iran(6)
+p = (AB)/(B)
 
-after_two = 1 # for first one
-for (i in 1:nrow(iran_sig_eq)) {
-  if (i > 1) {
-    differ = as.numeric(iran_sig_eq[i-1,]$OriginTime - iran_sig_eq[i,]$OriginTime, units="days") %/% 365
-    if (differ >= 2) {
-      after_two = after_two + 1
-    }
-  }
-}
-after_two = after_two / nrow(iran_sig_eq)
-
-p = (after_year)/(after_two)
 cat("Probability of earthquake in 5 years is", p)
-
-
-
 ```
 
 ***
