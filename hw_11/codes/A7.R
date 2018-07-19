@@ -35,3 +35,10 @@ prob = nrow(worldwide_fore_aft %>% filter(state == 1) %>%
 
 cat("Probability of happening earthquake after foreshock is:", prob)
 
+# predict main earthquake
+worldwide_fore_mean <- worldwide_fore_aft %>% group_by(year, month, location, state) %>% summarise(count = n(), mean_mag = mean(mag), mean_dep = mean(depth))
+ww_fore <- worldwide_fore_mean %>% filter(state == 1)
+ww_eq <- worldwide_fore_mean %>% filter(state == 0)
+ww_merge <- inner_join(ww_fore, ww_eq, by = c("year", "month", "location"))
+glm_foreshock <- glm(mean_mag.y ~ mean_mag.x + count.x, data = ww_merge)
+summary(glm_foreshock)

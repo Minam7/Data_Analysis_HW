@@ -281,6 +281,25 @@ cat("Probability of happening earthquake after foreshock is:", prob)
 همانطور که در نتیجه ی بالا می بینیم، در ۵۸ درصد مواقع پیش از زلزله ی اصلی، پیش لرزه رخ می دهد. از آنجایی که این احتمال بالا نیست، نمی توان با قطعیت گفت که زلزله ای که رخ داده پیش لرزه است و حتما زلزله ی اصلی را به همراه دارد.
 </p>
 
+<p dir="RTL">
+حال با توجه به نتایج فوق سعی می کنیم مدلی برای پیشبینی زلزله بدست آوریم و دقت آن را اندازه بگیریم. برای این منظور، تعداد پیش لرزه ها و میانگین آن ها را بدست آورده و سعی می کنیم اندازه ی زلزله ی اصلی را از این طریق محاسبه کنیم.
+</p>
+
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# predict main earthquake
+worldwide_fore_mean <- worldwide_fore_aft %>% group_by(year, month, location, state) %>% summarise(count = n(), mean_mag = mean(mag), mean_dep = mean(depth))
+ww_fore <- worldwide_fore_mean %>% filter(state == 1)
+ww_eq <- worldwide_fore_mean %>% filter(state == 0)
+ww_merge <- inner_join(ww_fore, ww_eq, by = c("year", "month", "location"))
+glm_foreshock <- glm(mean_mag.y ~ mean_mag.x + count.x, data = ww_merge)
+summary(glm_foreshock)
+```
+
+<p dir="RTL">
+همانطور که مشاهده می کنیم، این مدل دقت خوبی دارد و خطای آن حول صفر است. اما باید توجه داشته باشیم که در صورتی که پیش لرزه رخ دهد می توانیم زلزله ی اصلی را با خطای کمی پیش بینی کنیم، اما تنها در ۵۸ درصد زلزله ها ابتدا پیش لرزه رخ می دهد.
+</p>
+
 ***
 
 <p dir="RTL">
