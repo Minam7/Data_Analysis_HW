@@ -84,6 +84,7 @@ movie_genre <- na.omit(movie_genre)
 movie_genre <- rating %>% filter(!is.na(Rating)) %>% 
   group_by(MovieID) %>% summarise(Rate = mean(Rating), watch = n()) %>% 
   left_join(movie_genre, by = c("MovieID"))
+movie_genre <- na.omit(movie_genre)
 
 yearly_genre <- movie_genre %>% filter(watch > 100 & Rate > 3) %>% 
   group_by(year) %>% summarise_at(c(7:23), sum)

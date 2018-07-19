@@ -186,6 +186,7 @@ movie_genre <- na.omit(movie_genre)
 movie_genre <- rating %>% filter(!is.na(Rating)) %>% 
   group_by(MovieID) %>% summarise(Rate = mean(Rating), watch = n()) %>% 
   left_join(movie_genre, by = c("MovieID"))
+movie_genre <- na.omit(movie_genre)
 
 yearly_genre <- movie_genre %>% filter(watch > 100 & Rate > 3) %>% 
   group_by(year) %>% summarise_at(c(7:23), sum)
@@ -198,32 +199,71 @@ knitr::kable(yearly_genre %>% select(year, chosen))
 
 ```
 
-<p dir="RTL">
-
-</p>
-
-```{r, message=FALSE, warning=FALSE, comment=NA}
-
-```
-
-
 ***
 
 <p dir="RTL">
 ۲. ژانر فیلم ها را استخراج نمایید.  سپس آماره های زیر را استخراج نمایید.
-الف. نمودار ستونی تعداد فیلم های هر ژانر
-ب. نمودار همبستگی ژانرها
-پ. متوسط امتیاز به هر ژانر
-ت. دوران طلایی فیلم سازی 
+<br>
+این داده در بخش آخر سوال پیش با نام 
+movie_genre 
+طبق توضیحات داده ساخته شده است.
+<br>
+**الف. نمودار ستونی تعداد فیلم های هر ژانر**
+<br>
+برای این سوال ابتدا داده ی فوق را به صورت مجموع هر ستون خلاصه سازی می کنیم. در نهایت با کمک تابع
+melt 
+ستون های دیتافریم را تبدیل به ردیف می کنیم و نمودار را نمایش می دهیم.
 </p>
 
-<p dir="RTL">
+```{r, message=FALSE, warning=FALSE, comment=NA}
+library(reshape2)
 
+# a: count of genre movies
+count_genre <- movie_genre  %>% summarise_at(c(7:24), sum)
+count_genre = melt(count_genre)
+colnames(count_genre) = c('genre', 'count')
+
+count_genre %>% 
+  hchart(type = "column", hcaes(x = genre, y = count, color = count)) %>% 
+  hc_yAxis(title = list(text = "Count")) %>% 
+  hc_xAxis(title = list(text = "Genre")) %>% 
+  hc_title(text = "Number of Movie Produced in Each Genre", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_538())
+```
+
+<p dir="RTL">
+**ب. نمودار همبستگی ژانرها**
+<br>
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# b: genres correlation plot
+library(corrplot)
+corrplot(cor(movie_genre  %>% select(c(7:24))), method = "color", tl.cex = 0.5/par("cex"), cl.cex = 0.5/par("cex"))
+
+```
+
+<p dir="RTL">
+**پ. متوسط امتیاز به هر ژانر**
+<br>
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 
 ```
+
+<p dir="RTL">
+**ت. دوران طلایی فیلم سازی** 
+<br>
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+
+```
+
+<p dir="RTL">
+
+</p>
 
 ***
 
