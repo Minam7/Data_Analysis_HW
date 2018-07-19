@@ -34,3 +34,4 @@ prob = nrow(worldwide_fore_aft %>% filter(state == 1) %>%
   nrow(worldwide_fore_aft %>% distinct(year, month, location))
 
 cat("Probability of happening earthquake after foreshock is:", prob)
+

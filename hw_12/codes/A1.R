@@ -27,5 +27,14 @@ worst_rate <- rating %>% filter(!is.na(Rating)) %>%
 knitr::kable(worst_rate)
 
 # d: yearly built movies
-yearly <- movie %>% mutate(year = tail(str_split(Title, " ")[[1]], n=1)) %>% 
-  group_by(year) %>% summarise(count = n())
+movie <- movie %>% mutate(year = str_extract(Title, '\\([[:digit:]]{4}\\)'))
+yearly <- movie %>% group_by(year) %>% summarise(count = n()) %>% filter(!is.na(year))
+
+yearly  %>% mutate(year = str_extract(year, '[[:digit:]]{4}')) %>% 
+  hchart(type = "line", hcaes(x = year, y = count)) %>% 
+  hc_yAxis(title = list(text = "Count")) %>% 
+  hc_xAxis(title = list(text = "Year")) %>% 
+  hc_title(text = "Number of Movie Produced Yearly", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_sandsignika())
+
+# e: favourite genre
