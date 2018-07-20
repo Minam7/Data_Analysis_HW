@@ -37,14 +37,16 @@ world_ec <- wdi_data %>% filter(`Indicator Code`== 'NE.EXP.GNFS.CD') %>%
   rbind(wdi_data %>% filter(`Indicator Code`== 'NY.GNP.MKTP.PP.CD') %>% 
           select(country = `Country Name`, index = `Indicator Name`, matches('^199[6-9]|^20[0-1][0-9]'))) %>% 
   rbind(wdi_data %>% filter(`Indicator Code`== 'SH.UHC.NOP1.TO') %>% 
-          select(country = `Country Name`, index = `Indicator Name`, matches('^199[6-9]|^20[0-1][0-9]'))) %>%
+          select(country = `Country Name`, index = `Indicator Name`, matches('^199[6-9]|^20[0-1][0-9]')))
+
+world_ec_m <- world_ec %>% 
   melt(id.vars=c('country', 'index')) %>% 
   filter(!is.na(value)) %>% 
   group_by(index)
   
 
 
-plots <- world_ec %>% 
+plots <- world_ec_m %>% 
   do(
     plots = ggplot(.,aes(x = variable, y = value, color = index)) + geom_boxplot() +
       xlab("Year") + ggtitle("Worldwide Economic vs. Iran") +

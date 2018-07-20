@@ -255,13 +255,16 @@ world_ec <- wdi_data %>% filter(`Indicator Code`== 'NE.EXP.GNFS.CD') %>%
   rbind(wdi_data %>% filter(`Indicator Code`== 'NY.GNP.MKTP.PP.CD') %>% 
           select(country = `Country Name`, index = `Indicator Name`, matches('^199[6-9]|^20[0-1][0-9]'))) %>% 
   rbind(wdi_data %>% filter(`Indicator Code`== 'SH.UHC.NOP1.TO') %>% 
-          select(country = `Country Name`, index = `Indicator Name`, matches('^199[6-9]|^20[0-1][0-9]'))) %>%
+          select(country = `Country Name`, index = `Indicator Name`, matches('^199[6-9]|^20[0-1][0-9]')))
+
+world_ec_m <- world_ec %>% 
   melt(id.vars=c('country', 'index')) %>% 
   filter(!is.na(value)) %>% 
   group_by(index)
   
 
-plots <- world_ec %>% 
+
+plots <- world_ec_m %>% 
   do(
     plots = ggplot(.,aes(x = variable, y = value, color = index)) + geom_boxplot() +
       xlab("Year") + ggtitle("Worldwide Economic vs. Iran") +
@@ -284,12 +287,39 @@ plots$plots
 </p>
 
 <p dir="RTL">
-
+برای پاکسازی داده ها مقادیر ستون های 
+NA 
+را برابر با صفر قرار می دهیم، سپس برای هر کشور، میانگین مقادیر ستون ها را محاسبه می کنیم. در نهایت به کمک 
+kmeans
+داده های سال های مختلف برای کشورهای مختلف را به سه دسته تقسیم می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+# cleaning data
+world_ec_cluster <- world_ec
+world_ec_cluster[is.na(world_ec)] = 0
+patt = "Africa|America|Asia|dividend|Euro|income|members|Middle|only|Sub|total|World"
 
+world_ec_cluster <- world_ec_cluster %>% group_by(country) %>% 
+  filter(!grepl(patt,country)) %>% 
+  summarise_at(c(2:22), mean)
+
+set.seed(1234)
+clusters = kmeans(world_ec_cluster[,2:22], 3)
+
+world_ec_cluster$cluster_no = as.integer(clusters$cluster)
+
+iran_cluster = world_ec_cluster %>% 
+  filter(country == 'Iran, Islamic Rep.')
+
+cat("Iran cluster:", iran_cluster[1,23,1])
+
+str(clusters)
 ```
+
+<p dir="RTL">
+نتیجه فوق نشان می دهد ایران در دسته ی سوم قرار دارد.
+</p>
 
 ***
 
