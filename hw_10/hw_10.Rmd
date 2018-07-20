@@ -36,14 +36,6 @@ library(stringr)
 wdi_data = read_csv('data/WDIData.csv')
 ```
 
-```{r, message=FALSE, warning=FALSE, comment=NA}
-
-```
-
-<p dir="RTL">
-
-</p>
-
 ***
 
 <p dir="RTL">
@@ -506,7 +498,7 @@ summary(lm_irn)
 <br>
 همانند بالا شاخص هایی که 
 NA 
-کمتری دارند را انتخاب می کنیم. در نهایت می بینیم ایران از نظر آموزش نیز در دسته ی سوم قرار دارد. هم چنین در این بخش مدل خطی ما برای پیشبینی استفاده می کنیم. می بینیم خطای ما حول صفر است.
+کمتری دارند را انتخاب می کنیم. در نهایت می بینیم ایران از نظر آموزش نیز در دسته ی اول قرار دارد. هم چنین در این بخش مدل خطی ما برای پیشبینی استفاده می کنیم. می بینیم خطای ما حول صفر است.
 </p>
 ```{r, message=FALSE, warning=FALSE, comment=NA}
 # education
@@ -621,8 +613,14 @@ summary(lm_irn)
 
 </p>
 
-```{r, message=FALSE, warning=FALSE, comment=NA}
+```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
+library(ape)
+ec_sixty = bind_cols(world_ec_cluster,world_ed_cluster,world_hc_cluster)
 
+hcut = cutree(hclust(dist(ec_sixty, method = "euclidean"),method = "complete"),k=3)
+cat(hcut['Iran, Islamic Rep.'])
+
+plot(as.phylo(hclust(dist(ec_sixty, method = "euclidean"),method = "complete")), cex = 0.3, label.offset = 0)
 ```
 
 ***
@@ -632,9 +630,68 @@ summary(lm_irn)
 </p>
 
 <p dir="RTL">
-
+**بیشترین امید به زندگی در دنیا**
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+# a
+max_life_exp <- life_expectancy %>% group_by(country) %>% 
+  summarise(exp = mean(value)) %>% arrange(desc(exp)) %>% slice(1:10)
 
+knitr::kable(max_life_exp)
 ```
+<p dir="RTL">
+**تفاوت ایران با دنیا در شرکت در مدرسه**
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# b
+edm <-wdi_data %>% filter(`Indicator Code`== 'NY.GDP.PCAP.CD') %>% 
+  select(country = `Country Name`, matches('\\d{4}')) %>% 
+  melt(id.vars=c('country')) %>% 
+  filter(!is.na(value))
+
+q = ggplot(edm ,aes(x = variable, y = value)) + geom_boxplot() +
+    xlab("Year") + ggtitle("School enrollment, primary (gross), gender parity index (GPI)n") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    geom_line(data = subset(edm,country == 'Iran, Islamic Rep.'),aes(x = variable, y = value, group = 1, color = 'Iran, Islamic Rep.'))
+```
+
+<div align="center">
+<img  src="images/A11.png"  align = 'center'>
+</div>
+
+<p dir="RTL">
+**تفاوت ایران با دنیا در شرکت در مدرسه**
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# b
+edm <-wdi_data %>% filter(`Indicator Code`== 'NY.GDP.PCAP.CD') %>% 
+  select(country = `Country Name`, matches('\\d{4}')) %>% 
+  melt(id.vars=c('country')) %>% 
+  filter(!is.na(value))
+
+q = ggplot(edm ,aes(x = variable, y = value)) + geom_boxplot() +
+    xlab("Year") + ggtitle("School enrollment, primary (gross), gender parity index (GPI)n") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    geom_line(data = subset(edm,country == 'Iran, Islamic Rep.'),aes(x = variable, y = value, group = 1, color = 'Iran, Islamic Rep.'))
+```
+
+<div align="center">
+<img  src="images/A11.png"  align = 'center'>
+</div>
+
+<p dir="RTL">
+**میزان مرگ و میر نوزادان**
+</p>
+```{r, message=FALSE, warning=FALSE, comment=NA}
+# c
+hcm <- wdi_data %>% filter(`Indicator Code`== 'SH.DTH.IMRT') %>% 
+  select(country = `Country Name`, matches('\\d{4}')) %>% 
+  melt(id.vars=c('country')) %>% 
+  filter(!is.na(value)) %>% 
+  group_by(country) %>% 
+  summarise(death = sum(value)) %>% arrange(desc(death)) %>% slice(1:10)
+
+knitr::kable(hcm)
+```
+
