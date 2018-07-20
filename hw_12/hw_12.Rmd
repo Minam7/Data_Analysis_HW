@@ -471,19 +471,16 @@ https://github.com/minam75/Data_Analysis_HW
 
 <p dir="RTL">
 ۱.
-
+کم کردن و یا حداقل اختیاری کردن ۲ تا از تمارین
 <br>
 ۲.
-
+اضافه کردن سیاست تاخیر بدون کسر نمره
 <br>
 ۳.
-
+سیستم تدریس و ارزیابی درس رو همراستا بکنید. یا هر دو ریاضی وار باشند یا هر دو مهندسی باشند.
 <br>
 ۴.
-
-<br>
-۵.
-
+مباحث یادگیری ماشین بیشتر در درس باشند.
 </p>
 
 ***
@@ -494,13 +491,14 @@ https://github.com/minam75/Data_Analysis_HW
 
 <p dir="RTL">
 ۱.
-
+Bayes Network
 <br>
 ۲.
-
+مباحث اضافه ای در
+dimentionality reduction
 <br>
 ۳.
-
+آشنایی با شبکه عصبی
 </p>
 
 ***
@@ -511,13 +509,15 @@ https://github.com/minam75/Data_Analysis_HW
 
 <p dir="RTL">
 ۱.
-
+Skytrax  User Review of airlines
 <br>
 ۲.
-
+Amazon reviews
 <br>
 ۳.
-
+Ling-Spam Dataset - classifying spam from legitimate email
+<br>
+لینک : https://en.wikipedia.org/wiki/List_of_datasets_for_machine_learning_research#Open_Repositories_2
 </p>
 
 ***
