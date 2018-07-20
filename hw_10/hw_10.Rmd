@@ -99,11 +99,44 @@ poverty %>% arrange(daily_income) %>%
 </p>
 
 <p dir="RTL">
-
+برای حل این سوال، امید به زندگی را در تمامی سال ها بدست می آوریم. سپس نمودار را از ستونی به ردیفی به کمک
+melt 
+تبدیل می کنیم. در نهایت نمودار جعبه را می کشیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+library(reshape2)
 
+life_expectancy <- wdi_data %>% filter(`Indicator Code`== 'SP.DYN.LE00.IN') %>% 
+  select(country = `Country Name`, matches('\\d{4}')) %>% 
+  melt(id.vars=c('country'))
+
+rwd_life_expectancy <- life_expectancy %>% filter(country == 'Rwanda')
+```
+
+
+```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
+p = ggplot(data = life_expectancy, mapping = aes(x = variable, y = value)) + geom_boxplot() +
+  geom_line(data = rwd_life_expectancy, mapping = aes(x = variable, y = value, group = 1, color = 'Rwanda')) + 
+  xlab("Year") + ylab("Life Expectancy") + ggtitle("Average Life Expectancy In Worldwide") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+p
+```
+
+<div align="center">
+<img  src="images/A2.png"  align = 'center'>
+</div>
+
+<p dir="RTL">
+مشاهده می کنیم که در این سال ها امید به زندگی در روآندا با اختلاف از سایر کشورها کمتر است که علت آن نسل کشی توسط دولت بوده است. همچنین در زیر می بینیم که یک میلیون نفر در این دوران کشته شده اند.
+</p>
+
+```{r, message=FALSE, warning=FALSE, comment=NA}
+rwd_death <- wdi_data %>% filter(`Indicator Code`== 'SP.DYN.CDRT.IN') %>% 
+  select(country = `Country Name`, matches('\\d{4}')) %>% filter(country == 'Rwanda') %>% 
+  melt(id.vars=c('country')) %>% summarise(tot_death = 1000*sum(value,na.rm = TRUE))
+
+cat("Total Death in Rwanda is", rwd_death[1,], "people.")
 ```
 
 ***
