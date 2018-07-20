@@ -118,7 +118,7 @@ rwd_life_expectancy <- life_expectancy %>% filter(country == 'Rwanda')
 ```{r, message=FALSE, warning=FALSE, comment=NA, eval=FALSE}
 p = ggplot(data = life_expectancy, mapping = aes(x = variable, y = value)) + geom_boxplot() +
   geom_line(data = rwd_life_expectancy, mapping = aes(x = variable, y = value, group = 1, color = 'Rwanda')) + 
-  xlab("Year") + ylab("Life Expectancy") + ggtitle("Average Life Expectancy In Worldwide") + 
+  xlab("Year") + ylab("Life Expectancy") + ggtitle("Average Life Expectancy Worldwide") + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 p
 ```
