@@ -147,12 +147,32 @@ cat("Total Death in Rwanda is", rwd_death[1,], "people.")
 </p>
 
 <p dir="RTL">
-
+برای حل این سوال همانند بالا داده را در باره ی هزینه های بهداشتی نیز بدست می آوریم، منتهی برای آنکه رنج آن با امید به زندگی قابل مقایسه باشد داده ها را به ۱۰۰ تقسیم می کنیم و دو نمودار را کنار یکدیگر رسم می کنیم.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+health <- wdi_data %>% filter(`Indicator Code`== 'SH.XPD.CHEX.PC.CD') %>% 
+  select(country = `Country Name`, matches('\\d{4}')) %>% 
+  melt(id.vars=c('country')) %>% 
+  mutate(value = value/100, type = 'health') %>% 
+  filter(!is.na(value))
 
+life_expectancy <- life_expectancy %>% filter(!is.na(value)) %>% mutate(type = 'life expectancy')
+
+health_expect <- health %>% rbind(life_expectancy)
+
+p = ggplot(data = health_expect, mapping = aes(x = variable, y = value, fill = type, color = type)) + geom_boxplot() +
+  xlab("Year") + ylab("Life Expectancy or Health Cost") + ggtitle("Average Life Expectancy and Health Cost Worldwide") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 ```
+
+<div align="center">
+<img  src="images/A3.png"  align = 'center'>
+</div>
+
+<p dir="RTL">
+همانطور که انتظار می رود، هر چه امید به زندگی به طور میانگین بالا می رود، میزان هزینه های بهداشتی و اهمیت افراد به بهداشت خود نیز افزایش پیدا می کند.
+</p>
 
 ***
 
