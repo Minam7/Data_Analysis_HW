@@ -5,7 +5,7 @@ count_genre <- movie_genre  %>% summarise_at(c(7:24), sum)
 count_genre = melt(count_genre)
 colnames(count_genre) = c('genre', 'count')
 
-count_genre %>% 
+count_genre %>% arrange(desc(count)) %>% 
   hchart(type = "column", hcaes(x = genre, y = count, color = count)) %>% 
   hc_yAxis(title = list(text = "Count")) %>% 
   hc_xAxis(title = list(text = "Genre")) %>% 
