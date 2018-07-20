@@ -440,7 +440,9 @@ knitr::kable(movie_r)
 </p>
 
 <p dir="RTL">
-
+من ازابتدای درس، تمارین را در گیت هاب قرار می دادم:))
+<br>
+https://github.com/minam75/Data_Analysis_HW
 </p>
 
 ***
