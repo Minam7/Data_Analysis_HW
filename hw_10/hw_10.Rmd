@@ -57,20 +57,20 @@ NA
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
-income <- wdi_data %>% filter(`Indicator Code`== 'NY.ADJ.NNTY.CD') %>% 
-  select(country = `Country Name`, income = `2016`)
-
 poverty <- wdi_data %>%  filter(`Indicator Code`== 'NY.GDP.PCAP.PP.CD') %>% 
   select(country = `Country Name`, poverty = `2016`)
+
+income <- wdi_data %>% filter(`Indicator Code`== 'NY.ADJ.NNTY.CD') %>% 
+  select(country = `Country Name`, income = `2016`)
 
 poverty_line <- wdi_data %>% filter(`Indicator Code`== 'SI.POV.NAHC') %>% 
   select(country = `Country Name`, poverty_line = `2014`)
 
-population <- wdi_data %>% filter(`Indicator Code`== 'SP.POP.TOTL') %>% 
-  select(country = `Country Name`, population = `2016`)
-
 life_expectancy <- wdi_data %>% filter(`Indicator Code`== 'SP.DYN.LE00.IN') %>% 
   select(country = `Country Name`, life_expectancy = `2016`)
+
+population <- wdi_data %>% filter(`Indicator Code`== 'SP.POP.TOTL') %>% 
+  select(country = `Country Name`, population = `2016`)
 
 poverty <- poverty %>%  inner_join(income, by = c("country")) %>% 
   inner_join(population, by = c("country")) %>% 
