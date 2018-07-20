@@ -14,6 +14,7 @@ p
   
 rwd_death <- wdi_data %>% filter(`Indicator Code`== 'SP.DYN.CDRT.IN') %>% 
   select(country = `Country Name`, matches('\\d{4}')) %>% filter(country == 'Rwanda') %>% 
-  melt(id.vars=c('country')) %>% summarise(tot_death = 1000*sum(value,na.rm = TRUE))
+  melt(id.vars=c('country')) %>% filter(!is.na(value)) %>% 
+  summarise(tot_death = 1000*sum(value))
 
 cat("Total Death in Rwanda is", rwd_death[1,], "people.")
