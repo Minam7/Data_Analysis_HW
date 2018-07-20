@@ -56,3 +56,20 @@ p
 knitr::kable(mrate_mean_genre)
 
 # d: cinema golden age
+movie_rate <- movie_genre %>% select(-c(7:24)) %>% 
+  mutate(year = as.numeric(str_extract(year, '[[:digit:]]{4}'))) %>% 
+  mutate(decade = year - (year %% 10)) %>% 
+  group_by(decade) %>% summarise(watch_mean = mean(watch), watch = sum(watch), rate_mean = mean(Rate)) %>% 
+  arrange(desc(rate_mean))
+
+golden_age <- movie_rate %>% slice(1)
+cat("Cinema Golden Age is", golden_age[1,1,1], "with rating mean of", golden_age[1,4,1])
+
+movie_rate  %>% arrange(decade) %>% 
+  hchart(type = "line", hcaes(x = decade, y = rate_mean)) %>% 
+  hc_yAxis(title = list(text = "Average Rating")) %>% 
+  hc_xAxis(title = list(text = "Decade")) %>% 
+  hc_title(text = "Rating Average in Decades", style = list(fontWeight = "bold")) %>% 
+  hc_add_theme(hc_theme_flat())
+
+
