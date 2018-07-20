@@ -362,11 +362,26 @@ str(clusters)
 </p>
 
 <p dir="RTL">
-
+از مدل 
+glm
+استفاده می کنیم و سعی میکنیم سال ۲۰۱۶ را از روی سالهای پیشین بدست بیاوریم که نتایج نشان می دهد که به کمک داده های سال ۲۰۰۷ می توان پیشبینی کرد. اما همانطور که می بینیم مدل ما قوی نیست و خطای زیادی دارد.
 </p>
 
 ```{r, message=FALSE, warning=FALSE, comment=NA}
+iran_ec_m <- world_ec %>% filter(country == 'Iran, Islamic Rep.')
+iran_ec_m[is.na(iran_ec_m)] = 0
 
+glm_irn = glm(data = iran_ec_m[,3:23], formula = `2016`~.)
+summary(glm_irn)
+
+glm_irn = glm(data = iran_ec_m[,3:23], formula = `2016`~`2007` + `2014`)
+summary(glm_irn)
+
+glm_irn = glm(data = iran_ec_m[,3:23], formula = `2016`~`2007`)
+summary(glm_irn)
+
+lm_irn = lm(data = iran_ec_m[,3:23], formula = `2016`~.)
+summary(lm_irn)
 ```
 
 ***
